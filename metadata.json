@@ -1,0 +1,7 @@
+{
+  "name": "TV-Tech VR/AR Platform",
+  "description": "Televizion texnologiyalari fakulteti uchun interaktiv VR/AR va 3D animatsiyali ta'lim platformasi.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
