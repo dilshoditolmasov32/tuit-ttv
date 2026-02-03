@@ -6,8 +6,6 @@ import { Sphere, PerspectiveCamera, OrbitControls } from '@react-three/drei';
 import * as THREE from 'three';
 import { Language, StaffMember } from '../types';
 import { TRANSLATIONS, STAFF, HISTORY, MISSIONS } from '../constants';
-
-// Fix: Define intrinsic elements as any to avoid 'Property does not exist on type JSX.IntrinsicElements' errors
 const MeshBasicMaterial = 'meshBasicMaterial' as any;
 
 const PanoramicViewer = () => {
