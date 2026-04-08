@@ -186,13 +186,11 @@ const Navbar = ({ lang, setLang }: { lang: Language, setLang: (l: Language) => v
       <nav className={`fixed top-0 left-0 w-full z-[150] transition-all duration-500 ${scrolled ? 'py-4 glass border-b' : 'py-8'}`}>
         <div className="container mx-auto px-6 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-3 group">
-            <div className="w-10 h-10 bg-gradient-to-tr from-cyan-500 to-blue-600 rounded-xl flex items-center justify-center group-hover:rotate-[360deg] transition-transform duration-1000 shadow-lg shadow-cyan-500/20">
-              <i className="fas fa-broadcast-tower text-white text-xl"></i>
-            </div>
+          <img src="./assests/logo.jpg" alt="logo icon" width={45} height={45} />
+           
             <span className="font-black text-2xl tracking-tighter">TV-TECH</span>
           </Link>
 
-          {/* Desktop Nav */}
           <div className="hidden md:flex items-center gap-10">
             {NAV_ITEMS.map(item => (
               <Link 
@@ -222,7 +220,6 @@ const Navbar = ({ lang, setLang }: { lang: Language, setLang: (l: Language) => v
         </div>
       </nav>
 
-      {/* Mobile Menu Overlay */}
       <AnimatePresence>
         {isMobileMenuOpen && (
           <motion.div
@@ -268,59 +265,101 @@ const Footer = ({ lang }: { lang: Language }) => (
     <div className="container mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-20 relative">
       <div className="col-span-1 md:col-span-2">
         <div className="flex items-center gap-4 mb-8">
-          <div className="w-12 h-12 bg-gradient-to-tr from-cyan-500 to-blue-600 rounded-2xl flex items-center justify-center shadow-lg shadow-cyan-500/20">
-            <i className="fas fa-broadcast-tower text-white text-2xl"></i>
-          </div>
+          <img
+            src="./assests/logo.jpg"
+            alt="logo icon"
+            width={45}
+            height={45}
+          />
           <span className="font-black text-3xl tracking-tighter">TV-TECH</span>
         </div>
         <p className="text-gray-400 text-lg max-w-md leading-relaxed mb-10">
           {TRANSLATIONS[lang].footerAbout}
         </p>
         <div className="flex gap-6">
-          {['facebook-f', 'instagram', 'telegram-plane', 'youtube'].map(s => (
-            <a key={s} href="#" className="w-12 h-12 rounded-xl glass border border-white/10 flex items-center justify-center hover:bg-cyan-500 hover:text-white transition-all transform hover:-translate-y-2">
-              <i className={`fab fa-${s}`}></i>
+          {[
+            {
+              icon: "facebook-f",
+              link: "https://www.facebook.com/tuit.uz", // TATU rasmiy
+            },
+            {
+              icon: "instagram",
+              link: "https://www.instagram.com/tuit.uz", // TATU Instagram
+            },
+            {
+              icon: "telegram-plane",
+              link: "https://t.me/tuituz_official", // TATU Telegram
+            },
+            {
+              icon: "youtube",
+              link: "https://www.youtube.com/@tuituz", // TATU YouTube
+            },
+          ].map((s) => (
+            <a
+              key={s.icon}
+              href={s.link}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-12 h-12 rounded-xl glass border border-white/10 flex items-center justify-center hover:bg-cyan-500 hover:text-white transition-all transform hover:-translate-y-2"
+            >
+              <i className={`fab fa-${s.icon}`}></i>
             </a>
           ))}
         </div>
       </div>
-      
+
       <div>
-        <h4 className="text-xs font-bold text-gray-500 uppercase tracking-[0.4em] mb-10">Explore</h4>
+        <h4 className="text-xs font-bold text-gray-500 uppercase tracking-[0.4em] mb-10">
+          Yo‘nalishlar
+        </h4>
         <ul className="space-y-4">
-          {NAV_ITEMS.map(item => (
+          {NAV_ITEMS.map((item) => (
             <li key={item.id}>
-              <Link to={item.path} className="text-gray-400 hover:text-cyan-400 transition-colors font-medium">
+              <Link
+                to={item.path}
+                className="text-gray-400 hover:text-cyan-400 transition-colors font-medium"
+              >
                 {item.label[lang]}
               </Link>
             </li>
           ))}
         </ul>
       </div>
-      
+
       <div>
-        <h4 className="text-xs font-bold text-gray-500 uppercase tracking-[0.4em] mb-10">Contact</h4>
+        <h4 className="text-xs font-bold text-gray-500 uppercase tracking-[0.4em] mb-10">
+          Bog‘lanish
+        </h4>
         <ul className="space-y-6 text-gray-400">
           <li className="flex gap-4">
             <i className="fas fa-map-marker-alt text-cyan-500 pt-1"></i>
-            <span>Tashkent, Uzbekistan<br/>Amir Temur Street, 108</span>
+            <span>
+              Toshkent 100084,
+              <br /> Amir Temur shox ko‘chasi 108-uy
+            </span>
           </li>
           <li className="flex gap-4">
             <i className="fas fa-phone-alt text-cyan-500 pt-1"></i>
-            <span>+998 71 234 56 78</span>
+            <span> +998 71 238 64 89</span>
           </li>
           <li className="flex gap-4">
             <i className="fas fa-envelope text-cyan-500 pt-1"></i>
-            <span>info@tv-tech.uz</span>
+            <span>info@tuit.uz</span>
           </li>
         </ul>
       </div>
     </div>
     <div className="container mx-auto px-6 border-t border-white/5 mt-20 pt-10 flex flex-col md:flex-row justify-between items-center gap-6 text-gray-500 text-xs uppercase tracking-widest">
-      <div>&copy; {new Date().getFullYear()} TV-TECH FACULTY.</div>
+      <div>
+        &copy; {new Date().getFullYear()} Televizion va media texnologiyalar.
+      </div>
       <div className="flex gap-8">
-        <a href="#" className="hover:text-white transition-colors">Privacy Policy</a>
-        <a href="#" className="hover:text-white transition-colors">Terms of Service</a>
+        <a href="#" className="hover:text-white transition-colors">
+          Privacy Policy
+        </a>
+        <a href="#" className="hover:text-white transition-colors">
+          Terms of Service
+        </a>
       </div>
     </div>
   </footer>

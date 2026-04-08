@@ -1,5 +1,4 @@
-
-export type Language = 'uz' | 'ru' | 'en';
+export type Language = "uz" | "ru" | "en";
 
 export interface NavItem {
   id: string;
@@ -41,7 +40,7 @@ export interface StudentProject {
   id: string;
   title: Record<Language, string>;
   student: string;
-  type: 'video' | 'ar' | '3d';
+  type: "video" | "ar" | "3d";
   thumbnail: string;
   description: Record<Language, string>;
   caseStudy: {
@@ -59,4 +58,53 @@ export interface NewsItem {
   image: string;
   category: Record<Language, string>;
   content: Record<Language, string>;
+}
+
+// VR Module Types
+export interface VRObject {
+  id: string;
+  name: string;
+  position: [number, number, number];
+  rotation: [number, number, number];
+  scale: [number, number, number];
+  modelUrl?: string;
+  color?: string;
+  info: Record<Language, string>;
+  interactive: boolean;
+}
+
+export interface VRScene {
+  id: string;
+  name: Record<Language, string>;
+  description: Record<Language, string>;
+  models: VRObject[];
+  lightingPresets: {
+    ambientIntensity: number;
+    pointLightIntensity: number;
+    pointLightColor: string;
+  };
+}
+
+// AR Module Types
+export interface ARMarker {
+  id: string;
+  name: string;
+  imageUrl: string;
+  width: number;
+  height: number;
+}
+
+export interface ARObject {
+  id: string;
+  name: string;
+  modelUrl: string;
+  scale: [number, number, number];
+  rotation: [number, number, number];
+  info: Record<Language, string>;
+}
+
+export interface ARConfig {
+  marker: ARMarker;
+  object: ARObject;
+  autoRotate: boolean;
 }
