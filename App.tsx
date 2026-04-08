@@ -4,6 +4,7 @@ import { HashRouter, Routes, Route, Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { NAV_ITEMS, TRANSLATIONS } from './constants';
 import { Language } from './types';
+import logoIcon from "./assests/logo.jpg"
 
 import Home from './pages/Home';
 import About from './pages/About';
@@ -183,24 +184,31 @@ const Navbar = ({ lang, setLang }: { lang: Language, setLang: (l: Language) => v
 
   return (
     <>
-      <nav className={`fixed top-0 left-0 w-full z-[150] transition-all duration-500 ${scrolled ? 'py-4 glass border-b' : 'py-8'}`}>
+      <nav
+        className={`fixed top-0 left-0 w-full z-[150] transition-all duration-500 ${scrolled ? "py-4 glass border-b" : "py-8"}`}
+      >
         <div className="container mx-auto px-6 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-3 group">
-          <img src="./assests/logo.jpg" alt="logo icon" width={45} height={45} />
-           
-            <span className="font-black text-2xl tracking-tighter">TV-TECH</span>
+            <img src={logoIcon} alt="logo icon" width={45} height={45} />
+
+            <span className="font-black text-2xl tracking-tighter">
+              TV-TECH
+            </span>
           </Link>
 
           <div className="hidden md:flex items-center gap-10">
-            {NAV_ITEMS.map(item => (
-              <Link 
-                key={item.id} 
-                to={item.path} 
-                className={`text-[10px] font-bold uppercase tracking-[0.2em] transition-all hover:text-cyan-400 relative group ${location.pathname === item.path ? 'text-cyan-400' : 'text-gray-400'}`}
+            {NAV_ITEMS.map((item) => (
+              <Link
+                key={item.id}
+                to={item.path}
+                className={`text-[10px] font-bold uppercase tracking-[0.2em] transition-all hover:text-cyan-400 relative group ${location.pathname === item.path ? "text-cyan-400" : "text-gray-400"}`}
               >
                 {item.label[lang]}
                 {location.pathname === item.path && (
-                  <motion.div layoutId="nav-line" className="absolute -bottom-2 left-0 w-full h-0.5 bg-cyan-500 rounded-full" />
+                  <motion.div
+                    layoutId="nav-line"
+                    className="absolute -bottom-2 left-0 w-full h-0.5 bg-cyan-500 rounded-full"
+                  />
                 )}
               </Link>
             ))}
@@ -208,13 +216,15 @@ const Navbar = ({ lang, setLang }: { lang: Language, setLang: (l: Language) => v
 
           <div className="flex items-center gap-3">
             <LanguageSelector lang={lang} setLang={setLang} />
-            
+
             {/* Mobile Hamburger Button */}
-            <button 
+            <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               className="w-10 h-10 glass rounded-xl flex items-center justify-center md:hidden border border-white/10 hover:border-cyan-500 transition-all text-white"
             >
-              <i className={`fas ${isMobileMenuOpen ? 'fa-times' : 'fa-bars'}`}></i>
+              <i
+                className={`fas ${isMobileMenuOpen ? "fa-times" : "fa-bars"}`}
+              ></i>
             </button>
           </div>
         </div>
@@ -223,10 +233,10 @@ const Navbar = ({ lang, setLang }: { lang: Language, setLang: (l: Language) => v
       <AnimatePresence>
         {isMobileMenuOpen && (
           <motion.div
-            initial={{ opacity: 0, x: '100%' }}
+            initial={{ opacity: 0, x: "100%" }}
             animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: '100%' }}
-            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+            exit={{ opacity: 0, x: "100%" }}
+            transition={{ type: "spring", damping: 25, stiffness: 200 }}
             className="fixed inset-0 z-[140] glass bg-black/95 flex flex-col pt-32 px-10 pb-10 md:hidden overflow-y-auto"
           >
             <div className="flex flex-col gap-6">
@@ -237,18 +247,20 @@ const Navbar = ({ lang, setLang }: { lang: Language, setLang: (l: Language) => v
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: idx * 0.05 }}
                 >
-                  <Link 
-                    to={item.path} 
-                    className={`text-3xl font-black uppercase tracking-tighter transition-all ${location.pathname === item.path ? 'text-cyan-500' : 'text-gray-500 hover:text-white'}`}
+                  <Link
+                    to={item.path}
+                    className={`text-3xl font-black uppercase tracking-tighter transition-all ${location.pathname === item.path ? "text-cyan-500" : "text-gray-500 hover:text-white"}`}
                   >
                     {item.label[lang]}
                   </Link>
                 </motion.div>
               ))}
             </div>
-            
+
             <div className="mt-auto pt-10 border-t border-white/5">
-              <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-4">Contact Info</p>
+              <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-4">
+                Contact Info
+              </p>
               <p className="text-gray-400 text-sm mb-2">info@tv-tech.uz</p>
               <p className="text-gray-400 text-sm">+998 71 234 56 78</p>
             </div>
@@ -265,12 +277,7 @@ const Footer = ({ lang }: { lang: Language }) => (
     <div className="container mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-20 relative">
       <div className="col-span-1 md:col-span-2">
         <div className="flex items-center gap-4 mb-8">
-          <img
-            src="./assests/logo.jpg"
-            alt="logo icon"
-            width={45}
-            height={45}
-          />
+          <img src={ logoIcon } alt="logo icon" width={45} height={45} />
           <span className="font-black text-3xl tracking-tighter">TV-TECH</span>
         </div>
         <p className="text-gray-400 text-lg max-w-md leading-relaxed mb-10">
