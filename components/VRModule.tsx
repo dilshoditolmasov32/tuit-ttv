@@ -1,338 +1,484 @@
-import React, { useEffect, useRef, useState } from "react";
-import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { PerspectiveCamera, OrbitControls, Stars } from "@react-three/drei";
+import React, { useMemo, useState } from "react";
+import { motion } from "framer-motion";
+import { Canvas, useFrame } from "@react-three/fiber";
+import { Float, OrbitControls, PerspectiveCamera } from "@react-three/drei";
 import * as THREE from "three";
-import { motion, AnimatePresence } from "framer-motion";
-import { Language, VRObject } from "../types";
-import {
-  createVRScene,
-  setupLighting,
-  addInteractiveObject,
-  KeyboardController,
-  RaycastController,
-  createParticles,
-  resetSceneToDefault,
-} from "../services/vrUtils";
+import { Language } from "../types";
 
-// ====================
-// VR SAHNA CONTENT
-// ====================
+type AreaId = "studio" | "control" | "audio" | "news";
 
-const vrSceneObjects: VRObject[] = [
+interface VRArea {
+  id: AreaId;
+  color: string;
+  position: [number, number, number];
+  scale: [number, number, number];
+  title: Record<Language, string>;
+  summary: Record<Language, string>;
+  details: Record<Language, string>;
+  mediaHint: Record<Language, string>;
+  stats: {
+    label: Record<Language, string>;
+    value: string;
+  }[];
+}
+
+const vrAreas: VRArea[] = [
   {
-    id: "server-1",
-    name: "Server Rack 1",
-    position: [-6, 0, -5],
-    rotation: [0, 0, 0],
-    scale: [1, 3, 1],
-    color: "#0099ff",
-    info: {
-      uz: "Kompyuter serveri - Toshkentdagi eng kuchli vositalar",
-      ru: "Компьютерный сервер - мощнейший сервис в Ташкенте",
-      en: "Computer Server - The most powerful server in Tashkent",
+    id: "studio",
+    color: "#22d3ee",
+    position: [-4.5, 1.8, -2],
+    scale: [2.2, 2.4, 1.4],
+    title: {
+      uz: "Teleko'rsatuv studiyasi",
+      ru: "Телестудия",
+      en: "Broadcast Studio",
     },
-    interactive: true,
+    summary: {
+      uz: "Yoritish, kamera va dekoratsiya joylashuvi bilan asosiy studiya maydoni.",
+      ru: "Основная студийная зона с освещением, камерами и декорациями.",
+      en: "Main studio area with lighting, cameras, and set arrangement.",
+    },
+    details: {
+      uz: "Bu zona talabalarga sahna joylashuvi, kamera rakurslari va kadr kompozitsiyasini VR muhitda tushuntirish uchun xizmat qiladi. Keyinchalik bu yerga real studio panoramasi, videolar va interaktiv nuqtalar qo'shishingiz mumkin.",
+      ru: "Эта зона демонстрирует сцену, ракурсы камер и композицию кадра в VR. Позже сюда можно добавить реальные панорамы студии, видео и интерактивные точки.",
+      en: "This zone demonstrates stage layout, camera angles, and shot composition in VR. Later you can replace it with real studio panoramas, videos, and interactive hotspots.",
+    },
+    mediaHint: {
+      uz: "Keyin almashtirish: studio rasmi, kamera videosi, yoritish sxemasi",
+      ru: "Позже заменить: фото студии, видео камер, схема освещения",
+      en: "Replace later with: studio photos, camera footage, lighting scheme",
+    },
+    stats: [
+      {
+        label: { uz: "Holat", ru: "Статус", en: "Status" },
+        value: "Static Demo",
+      },
+      {
+        label: { uz: "Kontent", ru: "Контент", en: "Content" },
+        value: "3 Placeholder",
+      },
+      {
+        label: { uz: "Format", ru: "Формат", en: "Format" },
+        value: "3D Scene",
+      },
+    ],
   },
   {
-    id: "server-2",
-    name: "Server Rack 2",
-    position: [6, 0, -5],
-    rotation: [0, 0, 0],
-    scale: [1, 3, 1],
-    color: "#00ff99",
-    info: {
-      uz: "5G Tarqatuvchi - Zamonaviy raqamli aloqa texnologiyasi",
-      ru: "5G раздатчик - современная технология цифровой связи",
-      en: "5G Distributor - Modern digital communications technology",
+    id: "control",
+    color: "#818cf8",
+    position: [0, 1.4, -4],
+    scale: [2.6, 1.6, 1.2],
+    title: {
+      uz: "Rejissyor pulti",
+      ru: "Режиссерский пульт",
+      en: "Control Room",
     },
-    interactive: true,
+    summary: {
+      uz: "Jonli efir va montaj boshqaruvi uchun markaziy monitoring qismi.",
+      ru: "Центральная зона мониторинга для эфира и монтажа.",
+      en: "Central monitoring area for live broadcast and editing workflow.",
+    },
+    details: {
+      uz: "Rejissyor pulti VR orqali talabalarga efir jarayonini izchil tushuntirish imkonini beradi. Monitorlar o'rniga hozircha neon panellar ishlatilgan, keyin esa haqiqiy interfeys skrinshotlari yoki videolarni joylashtirasiz.",
+      ru: "Режиссерский пульт помогает объяснить процесс эфира через VR. Вместо мониторов пока используются неоновые панели, которые позже можно заменить реальными интерфейсами и видео.",
+      en: "The control room helps explain the production workflow in VR. Neon panels are used for now and can later be replaced with real UI screenshots or production videos.",
+    },
+    mediaHint: {
+      uz: "Keyin almashtirish: OBS/mikшер skrinshotlari, live efir videosi",
+      ru: "Позже заменить: скриншоты микшера/OBS, видео прямого эфира",
+      en: "Replace later with: mixer or OBS screenshots, live broadcast video",
+    },
+    stats: [
+      {
+        label: { uz: "Holat", ru: "Статус", en: "Status" },
+        value: "Ready",
+      },
+      {
+        label: { uz: "Ekran", ru: "Экран", en: "Screens" },
+        value: "4 Panels",
+      },
+      {
+        label: { uz: "Interaktiv", ru: "Интерактив", en: "Interactive" },
+        value: "Yes",
+      },
+    ],
   },
   {
-    id: "core-unit",
-    name: "Core Processing Unit",
-    position: [0, 2, 0],
-    rotation: [0, 0, 0],
-    scale: [1.5, 1.5, 1.5],
-    color: "#ffaa00",
-    info: {
-      uz: "Merkaziy oʻrash birligı - TV-Tech platformasining yuragı",
-      ru: "Центральный блок обработки - сердце платформы TV-Tech",
-      en: "Central Processing Unit - Heart of TV-Tech Platform",
+    id: "audio",
+    color: "#f59e0b",
+    position: [4.5, 1.4, -1.8],
+    scale: [1.8, 1.8, 1.8],
+    title: {
+      uz: "Ovoz yozish bo'limi",
+      ru: "Аудиозапись",
+      en: "Audio Booth",
     },
-    interactive: true,
+    summary: {
+      uz: "Mikrofon, akustik muhit va podkast yozuvlari uchun namoyish zonasi.",
+      ru: "Демонстрационная зона для микрофона, акустики и подкаст-записи.",
+      en: "Demonstration area for microphone setup, acoustics, and podcast recording.",
+    },
+    details: {
+      uz: "Bu bo'limda audio yozish jarayoni, shovqinni kamaytirish va ovoz tozalash bosqichlari tushuntiriladi. Hozircha geometrik shakllar ishlatilmoqda, lekin keyinchalik mikrofon rasmi, audio waveform yoki izohli video bilan almashtirish juda oson.",
+      ru: "В этой секции можно показать процесс записи, шумоподавление и обработку звука. Сейчас используются геометрические формы, позже их легко заменить фото микрофона, waveform или поясняющим видео.",
+      en: "This section can explain recording, noise reduction, and sound processing. Geometric placeholders are used for now and can later be replaced with microphone images, waveforms, or short videos.",
+    },
+    mediaHint: {
+      uz: "Keyin almashtirish: mikrofon rasmi, audio vizualizatsiya, voice-over video",
+      ru: "Позже заменить: фото микрофона, аудиовизуализация, voice-over видео",
+      en: "Replace later with: microphone photo, audio waveform, voice-over video",
+    },
+    stats: [
+      {
+        label: { uz: "Holat", ru: "Статус", en: "Status" },
+        value: "Prototype",
+      },
+      {
+        label: { uz: "Audio", ru: "Аудио", en: "Audio" },
+        value: "Stereo",
+      },
+      {
+        label: { uz: "Vizual", ru: "Визуал", en: "Visual" },
+        value: "Static",
+      },
+    ],
   },
   {
-    id: "network-hub",
-    name: "Network Hub",
-    position: [0, -1, 5],
-    rotation: [Math.PI / 4, 0, 0],
-    scale: [2, 0.5, 2],
-    color: "#ff00ff",
-    info: {
-      uz: "Tarmoq tuguning markaziyshaharı - barcha ulanishlarning o'rta nuqtasi",
-      ru: "Центр сетевого концентратора - центральная точка всех соединений",
-      en: "Network Hub Center - Central point of all connections",
+    id: "news",
+    color: "#10b981",
+    position: [0, 1.2, 2.8],
+    scale: [3.4, 1.2, 0.6],
+    title: {
+      uz: "Yangiliklar desk zonasi",
+      ru: "Новостной desk",
+      en: "News Desk",
     },
-    interactive: true,
+    summary: {
+      uz: "Spiker chiqishi, teleprompter va frontal kadrlashni ko'rsatuvchi demo hudud.",
+      ru: "Демо-зона для диктора, телесуфлера и фронтального кадра.",
+      en: "Demo zone for anchor presentation, teleprompter setup, and frontal framing.",
+    },
+    details: {
+      uz: "Yangiliklar desk qismi diplom ishida fakultet faoliyatini taqdim etish uchun juda qulay. Hozir bu joy 3D bloklar bilan berilgan, keyin esa fakultet yangiliklari, spiker tasviri yoki 16:9 video panel qo'shishingiz mumkin.",
+      ru: "Новостной desk хорошо подходит для демонстрации деятельности факультета в дипломной работе. Сейчас здесь условные 3D-блоки, но позже можно добавить новости факультета, образ диктора или 16:9 видеопанель.",
+      en: "The news desk is a strong area for presenting faculty activity in your thesis. It currently uses 3D placeholder blocks, but you can later add faculty news, anchor visuals, or a 16:9 video panel.",
+    },
+    mediaHint: {
+      uz: "Keyin almashtirish: fakultet yangiliklari, 16:9 video panel, teleprompter matni",
+      ru: "Позже заменить: новости факультета, 16:9 видеопанель, текст телесуфлера",
+      en: "Replace later with: faculty news, 16:9 video panel, teleprompter text",
+    },
+    stats: [
+      {
+        label: { uz: "Holat", ru: "Статус", en: "Status" },
+        value: "Concept",
+      },
+      {
+        label: { uz: "Aspect", ru: "Формат", en: "Aspect" },
+        value: "16:9",
+      },
+      {
+        label: { uz: "Maqsad", ru: "Цель", en: "Goal" },
+        value: "Presentation",
+      },
+    ],
   },
 ];
 
-// ====================
-// VR ENVIRONMENT 3D SCENE
-// ====================
+const uiText = {
+  uz: {
+    title: "VR Laboratoriya Demosi",
+    subtitle:
+      "Hozircha statik 3D muhit, keyinchalik fakultet rasmlari va videolari bilan to'ldiriladi.",
+    areas: "VR zonalari",
+    sceneInfo: "Sahna ma'lumoti",
+    controls: "Boshqaruv",
+    controlsBody:
+      "Sichqoncha bilan aylantiring, g'ildirak bilan yaqinlashtiring va bloklarni bosib zona tanlang.",
+    strategy: "Diplom uchun tavsiya",
+    strategyBody:
+      "Avval VR struktura, keyin AR markerli ko'rinish, oxirida esa real panorama bilan 360 tur qo'shish eng to'g'ri ketma-ketlik.",
+    replaceLabel: "Media almashtirish rejasi",
+    sceneReady: "Sahna tayyor",
+    objectCount: "Interaktiv nuqtalar",
+    mode: "Rejim",
+    modeValue: "Static VR",
+    back: "Orqaga",
+  },
+  ru: {
+    title: "VR Демонстрация Лаборатории",
+    subtitle:
+      "Пока используется статическая 3D-сцена, позже сюда можно добавить фото и видео факультета.",
+    areas: "VR зоны",
+    sceneInfo: "Информация о сцене",
+    controls: "Управление",
+    controlsBody:
+      "Вращайте сцену мышью, приближайте колесиком и кликайте по блокам для выбора зоны.",
+    strategy: "Рекомендация для диплома",
+    strategyBody:
+      "Оптимальная последовательность: сначала VR структура, затем AR с маркером, и в конце 360 тур с реальной панорамой.",
+    replaceLabel: "План замены медиа",
+    sceneReady: "Сцена готова",
+    objectCount: "Интерактивные точки",
+    mode: "Режим",
+    modeValue: "Static VR",
+    back: "Назад",
+  },
+  en: {
+    title: "VR Laboratory Demo",
+    subtitle:
+      "A static 3D environment for now, designed so you can later swap in real faculty photos and videos.",
+    areas: "VR areas",
+    sceneInfo: "Scene info",
+    controls: "Controls",
+    controlsBody:
+      "Rotate with the mouse, zoom with the wheel, and click blocks to inspect each zone.",
+    strategy: "Thesis recommendation",
+    strategyBody:
+      "The cleanest sequence is VR structure first, AR marker experience second, and a real 360 tour last.",
+    replaceLabel: "Media replacement plan",
+    sceneReady: "Scene ready",
+    objectCount: "Interactive points",
+    mode: "Mode",
+    modeValue: "Static VR",
+    back: "Back",
+  },
+} as const;
 
-interface VRSceneProps {
-  lang: Language;
-  selectedObject: VRObject | null;
-  onObjectSelect: (obj: VRObject | null) => void;
-}
+function VRZoneMesh({
+  area,
+  active,
+  onSelect,
+}: {
+  area: VRArea;
+  active: boolean;
+  onSelect: (area: VRArea) => void;
+}) {
+  const meshRef = React.useRef<THREE.Mesh>(null);
 
-const VREnvironmentScene: React.FC<VRSceneProps> = ({
-  lang,
-  selectedObject,
-  onObjectSelect,
-}) => {
-  const { camera, scene } = useThree();
-  const meshesRef = useRef<THREE.Mesh[]>([]);
-  const keyboardControllerRef = useRef<KeyboardController | null>(null);
-  const raycastControllerRef = useRef<RaycastController | null>(null);
-
-  useEffect(() => {
-    // Scene setup
-    setupLighting(scene, {
-      ambient: 0.6,
-      pointLight: 1.2,
-      color: "#00f2fe",
-    });
-
-    // Create particles
-    createParticles(scene, 800);
-
-    // Create objects
-    const meshes = vrSceneObjects.map((obj) => {
-      const mesh = addInteractiveObject(scene, obj);
-      return mesh;
-    });
-
-    meshesRef.current = meshes;
-
-    // Keyboard controller
-    keyboardControllerRef.current = new KeyboardController();
-
-    // Raycaster controller
-    raycastControllerRef.current = new RaycastController();
-
-    return () => {
-      keyboardControllerRef.current?.dispose();
-      raycastControllerRef.current?.dispose();
-    };
-  }, [scene]);
-
-  useFrame(() => {
-    // Update keyboard controls
-    if (keyboardControllerRef.current) {
-      keyboardControllerRef.current.update(camera);
-    }
-
-    // Update raycaster selection
-    if (raycastControllerRef.current && meshesRef.current.length > 0) {
-      raycastControllerRef.current.updateSelection(camera, meshesRef.current);
-
-      const selected = raycastControllerRef.current.getSelectedObject();
-      if (selected) {
-        onObjectSelect(
-          vrSceneObjects.find((obj) => obj.id === selected.id) || null,
-        );
-      }
-    }
-
-    // Animate selected object
-    if (selectedObject && meshesRef.current.length > 0) {
-      const selectedMesh = meshesRef.current.find(
-        (m) => m.userData.id === selectedObject.id,
-      );
-      if (selectedMesh) {
-        selectedMesh.rotation.x += 0.005;
-        selectedMesh.rotation.y += 0.01;
-        selectedMesh.scale.set(
-          selectedObject.scale[0] * (1 + Math.sin(Date.now() * 0.005) * 0.1),
-          selectedObject.scale[1] * (1 + Math.sin(Date.now() * 0.005) * 0.1),
-          selectedObject.scale[2] * (1 + Math.sin(Date.now() * 0.005) * 0.1),
-        );
-      }
-    }
+  useFrame((state) => {
+    if (!meshRef.current) return;
+    const pulse = active ? 1 + Math.sin(state.clock.elapsedTime * 2.2) * 0.06 : 1;
+    meshRef.current.scale.set(
+      area.scale[0] * pulse,
+      area.scale[1] * pulse,
+      area.scale[2] * pulse,
+    );
+    meshRef.current.rotation.y += active ? 0.006 : 0.0025;
   });
 
   return (
-    <>
-      {/* Floor */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -2.5, 0]}>
-        <planeGeometry args={[50, 50]} />
-        <meshStandardMaterial color="#0a0a0a" roughness={0.7} metalness={0.1} />
-      </mesh>
-
-      {/* Walls */}
-      <mesh position={[0, 2, -15]}>
-        <planeGeometry args={[50, 10]} />
+    <Float speed={active ? 2 : 1.2} floatIntensity={active ? 0.8 : 0.35}>
+      <mesh
+        ref={meshRef}
+        position={area.position}
+        onClick={() => onSelect(area)}
+        onPointerOver={() => {
+          document.body.style.cursor = "pointer";
+        }}
+        onPointerOut={() => {
+          document.body.style.cursor = "default";
+        }}
+      >
+        <boxGeometry args={area.scale} />
         <meshStandardMaterial
-          color="#111111"
-          emissive="#00f2fe"
-          emissiveIntensity={0.1}
+          color={area.color}
+          emissive={area.color}
+          emissiveIntensity={active ? 0.7 : 0.25}
+          metalness={0.45}
+          roughness={0.3}
         />
       </mesh>
+    </Float>
+  );
+}
 
-      <Stars
-        radius={150}
-        depth={100}
-        count={5000}
-        factor={4}
-        saturation={0}
-        fade
-        speed={0.5}
+function VRLabScene({
+  selectedArea,
+  onSelect,
+}: {
+  selectedArea: VRArea;
+  onSelect: (area: VRArea) => void;
+}) {
+  const gridColor = useMemo(
+    () => new THREE.Color(selectedArea.color).multiplyScalar(0.55),
+    [selectedArea.color],
+  );
+
+  return (
+    <>
+      <PerspectiveCamera makeDefault position={[0, 7, 13]} fov={42} />
+      <color attach="background" args={["#04070d"]} />
+      <fog attach="fog" args={["#04070d", 16, 28]} />
+
+      <ambientLight intensity={0.7} />
+      <pointLight position={[0, 8, 0]} intensity={14} color={selectedArea.color} />
+      <pointLight position={[-8, 4, 6]} intensity={8} color="#38bdf8" />
+      <pointLight position={[8, 3, -6]} intensity={7} color="#f97316" />
+
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.05, 0]} receiveShadow>
+        <planeGeometry args={[24, 24]} />
+        <meshStandardMaterial color="#0b1220" roughness={0.95} metalness={0.1} />
+      </mesh>
+
+      <gridHelper args={[24, 24, gridColor, "#111827"]} position={[0, 0.01, 0]} />
+
+      <mesh position={[0, 3.5, -8]}>
+        <boxGeometry args={[18, 7, 0.4]} />
+        <meshStandardMaterial color="#0f172a" emissive="#111827" emissiveIntensity={0.35} />
+      </mesh>
+      <mesh position={[-9, 3.5, 0]}>
+        <boxGeometry args={[0.4, 7, 18]} />
+        <meshStandardMaterial color="#0f172a" emissive="#0f172a" emissiveIntensity={0.25} />
+      </mesh>
+      <mesh position={[9, 3.5, 0]}>
+        <boxGeometry args={[0.4, 7, 18]} />
+        <meshStandardMaterial color="#0f172a" emissive="#0f172a" emissiveIntensity={0.25} />
+      </mesh>
+
+      <mesh position={[0, 0.6, 5.2]}>
+        <boxGeometry args={[5.2, 1.2, 0.7]} />
+        <meshStandardMaterial color="#111827" emissive="#0f172a" emissiveIntensity={0.3} />
+      </mesh>
+      <mesh position={[0, 2.2, -6.8]}>
+        <boxGeometry args={[4.4, 2, 0.3]} />
+        <meshStandardMaterial color="#111827" emissive="#22d3ee" emissiveIntensity={0.15} />
+      </mesh>
+
+      {vrAreas.map((area) => (
+        <VRZoneMesh
+          key={area.id}
+          area={area}
+          active={area.id === selectedArea.id}
+          onSelect={onSelect}
+        />
+      ))}
+
+      <OrbitControls
+        enablePan={false}
+        minDistance={8}
+        maxDistance={18}
+        minPolarAngle={Math.PI / 5}
+        maxPolarAngle={Math.PI / 2.1}
+        target={[0, 2, 0]}
       />
     </>
   );
-};
-
-// ====================
-// VR MODULE MAIN COMPONENT
-// ====================
+}
 
 interface VRModuleProps {
   lang: Language;
   onBack: () => void;
 }
 
-export const VRModule: React.FC<VRModuleProps> = ({ lang, onBack }) => {
-  const [selectedObject, setSelectedObject] = useState<VRObject | null>(null);
-  const [showInfo, setShowInfo] = useState(false);
-
-  const getObjectInfo = (obj: VRObject | null) => {
-    if (!obj) return "";
-    return obj.info[lang] || obj.info["en"];
-  };
-
-  const handleObjectSelect = (obj: VRObject | null) => {
-    setSelectedObject(obj);
-    if (obj) setShowInfo(true);
-  };
+export default function VRModule({ lang, onBack }: VRModuleProps) {
+  const [selectedArea, setSelectedArea] = useState<VRArea>(vrAreas[0]);
+  const text = uiText[lang];
 
   return (
-    <div className="relative w-full h-[80vh] bg-black rounded-[3rem] overflow-hidden">
-      {/* 3D Canvas */}
-      <Canvas shadows dpr={[1, 2]} camera={{ position: [0, 5, 12], fov: 50 }}>
-        <PerspectiveCamera makeDefault position={[0, 5, 12]} fov={50} />
-        <VREnvironmentScene
-          lang={lang}
-          selectedObject={selectedObject}
-          onObjectSelect={handleObjectSelect}
-        />
-      </Canvas>
+    <div className="relative min-h-screen w-full overflow-hidden bg-[#04070d] text-white">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(34,211,238,0.16),transparent_30%),radial-gradient(circle_at_bottom_right,rgba(129,140,248,0.14),transparent_28%)]" />
 
-      {/* Info Panel */}
-      <AnimatePresence>
-        {showInfo && selectedObject && (
-          <motion.div
-            initial={{ opacity: 0, x: -30 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -30 }}
-            className="absolute top-10 left-10 p-8 glass rounded-[2rem] max-w-sm border-l-4 border-cyan-500 z-20"
+      <div className="relative z-10 grid min-h-screen grid-cols-1 xl:grid-cols-[320px_minmax(0,1fr)_340px]">
+        <aside className="border-b border-white/10 bg-black/20 p-6 backdrop-blur-xl xl:border-b-0 xl:border-r">
+          <div className="mb-8">
+            <p className="mb-3 inline-flex items-center gap-2 rounded-full border border-cyan-500/30 bg-cyan-500/10 px-3 py-1 text-[11px] uppercase tracking-[0.3em] text-cyan-300">
+              <span className="h-2 w-2 rounded-full bg-cyan-400" />
+              {text.sceneReady}
+            </p>
+            <h2 className="text-3xl font-semibold tracking-tight">{text.title}</h2>
+            <p className="mt-3 text-sm leading-6 text-white/60">{text.subtitle}</p>
+          </div>
+
+          <div>
+            <p className="mb-3 text-xs uppercase tracking-[0.35em] text-white/35">
+              {text.areas}
+            </p>
+            <div className="space-y-3">
+              {vrAreas.map((area) => {
+                const active = area.id === selectedArea.id;
+
+                return (
+                  <button
+                    key={area.id}
+                    onClick={() => setSelectedArea(area)}
+                    className={`w-full rounded-2xl border px-4 py-4 text-left transition-all ${
+                      active
+                        ? "border-cyan-400/50 bg-cyan-500/10 shadow-[0_0_40px_rgba(34,211,238,0.08)]"
+                        : "border-white/10 bg-white/[0.03] hover:border-white/25 hover:bg-white/[0.05]"
+                    }`}
+                  >
+                    <div className="mb-3 h-2 w-14 rounded-full" style={{ backgroundColor: area.color }} />
+                    <p className="text-base font-medium">{area.title[lang]}</p>
+                    <p className="mt-2 text-sm leading-5 text-white/50">{area.summary[lang]}</p>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </aside>
+
+        <div className="relative min-h-[48vh] xl:min-h-screen">
+          <Canvas dpr={[1, 2]}>
+            <VRLabScene selectedArea={selectedArea} onSelect={setSelectedArea} />
+          </Canvas>
+
+          <div className="pointer-events-none absolute left-6 top-6 rounded-2xl border border-white/10 bg-black/45 px-4 py-3 backdrop-blur-md">
+            <p className="text-xs uppercase tracking-[0.32em] text-cyan-300">{text.controls}</p>
+            <p className="mt-2 max-w-xs text-sm leading-5 text-white/60">{text.controlsBody}</p>
+          </div>
+
+          <button
+            onClick={onBack}
+            className="absolute bottom-6 right-6 rounded-full border border-red-500/30 bg-red-500/10 px-5 py-3 text-sm font-medium text-red-300 transition hover:bg-red-500 hover:text-white"
           >
-            <div className="flex justify-between items-start mb-4">
-              <div>
-                <h3 className="text-2xl font-bold text-white mb-2">
-                  {selectedObject.name}
-                </h3>
-                <p className="text-cyan-400 text-xs font-mono">
-                  ID: {selectedObject.id}
-                </p>
-              </div>
-              <button
-                onClick={() => setShowInfo(false)}
-                className="text-white hover:text-cyan-400 transition-colors"
-              >
-                ✕
-              </button>
+            {text.back}
+          </button>
+        </div>
+
+        <aside className="border-t border-white/10 bg-black/20 p-6 backdrop-blur-xl xl:border-l xl:border-t-0">
+          <motion.div
+            key={selectedArea.id}
+            initial={{ opacity: 0, y: 18 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.28 }}
+          >
+            <p className="text-xs uppercase tracking-[0.35em] text-white/35">{text.sceneInfo}</p>
+            <h3 className="mt-3 text-2xl font-semibold">{selectedArea.title[lang]}</h3>
+            <p className="mt-3 text-sm leading-6 text-white/65">{selectedArea.details[lang]}</p>
+
+            <div className="mt-6 rounded-3xl border border-white/10 bg-white/[0.03] p-5">
+              <p className="text-xs uppercase tracking-[0.32em] text-cyan-300">{text.replaceLabel}</p>
+              <p className="mt-3 text-sm leading-6 text-white/60">{selectedArea.mediaHint[lang]}</p>
             </div>
 
-            <p className="text-gray-300 leading-relaxed mb-4">
-              {getObjectInfo(selectedObject)}
-            </p>
+            <div className="mt-6 grid grid-cols-3 gap-3">
+              {selectedArea.stats.map((item) => (
+                <div key={item.label[lang]} className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+                  <p className="text-[11px] uppercase tracking-[0.28em] text-white/35">
+                    {item.label[lang]}
+                  </p>
+                  <p className="mt-2 text-sm font-medium text-white/85">{item.value}</p>
+                </div>
+              ))}
+            </div>
 
-            <div className="grid grid-cols-3 gap-2 mt-6 pt-4 border-t border-white/10">
-              <div>
-                <p className="text-[10px] text-gray-500 uppercase">X</p>
-                <p className="font-mono text-cyan-400">
-                  {selectedObject.position[0].toFixed(1)}
-                </p>
-              </div>
-              <div>
-                <p className="text-[10px] text-gray-500 uppercase">Y</p>
-                <p className="font-mono text-cyan-400">
-                  {selectedObject.position[1].toFixed(1)}
-                </p>
-              </div>
-              <div>
-                <p className="text-[10px] text-gray-500 uppercase">Z</p>
-                <p className="font-mono text-cyan-400">
-                  {selectedObject.position[2].toFixed(1)}
-                </p>
-              </div>
+            <div className="mt-6 rounded-3xl border border-white/10 bg-gradient-to-br from-cyan-500/10 to-indigo-500/10 p-5">
+              <p className="text-xs uppercase tracking-[0.32em] text-cyan-300">{text.strategy}</p>
+              <p className="mt-3 text-sm leading-6 text-white/65">{text.strategyBody}</p>
+            </div>
+
+            <div className="mt-6 flex items-center justify-between rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white/55">
+              <span>{text.objectCount}</span>
+              <span className="font-medium text-cyan-300">{vrAreas.length}</span>
+            </div>
+            <div className="mt-3 flex items-center justify-between rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white/55">
+              <span>{text.mode}</span>
+              <span className="font-medium text-cyan-300">{text.modeValue}</span>
             </div>
           </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Control Tips */}
-      <div className="absolute bottom-10 left-10 glass p-6 rounded-2xl max-w-sm text-sm">
-        <h4 className="font-bold text-cyan-400 mb-3 uppercase tracking-wider">
-          🎮 Boshqaruv
-        </h4>
-        <ul className="space-y-2 text-gray-400 text-xs">
-          <li>
-            <span className="text-cyan-400 font-mono">W/A/S/D</span> - Harakat
-            qilish
-          </li>
-          <li>
-            <span className="text-cyan-400 font-mono">Space/Ctrl</span> -
-            Yuqori/Pastga
-          </li>
-          <li>
-            <span className="text-cyan-400 font-mono">Sichqoncha</span> - Olamni
-            aylantirishish
-          </li>
-          <li>
-            <span className="text-cyan-400 font-mono">Click</span> - Objektni
-            tanlash
-          </li>
-        </ul>
-      </div>
-
-      {/* Back Button */}
-      <button
-        onClick={onBack}
-        className="absolute bottom-10 right-10 px-8 py-3 glass bg-red-500/10 border border-red-500/30 text-red-500 rounded-xl font-bold hover:bg-red-500 hover:text-white transition-all z-20"
-      >
-        🔙 Orqaga
-      </button>
-
-      {/* Stats */}
-      <div className="absolute top-10 right-10 glass p-4 rounded-xl text-xs font-mono text-cyan-400">
-        <div className="flex flex-col gap-2">
-          <div>
-            Selected:{" "}
-            <span className="font-bold">{selectedObject?.name || "None"}</span>
-          </div>
-          <div>
-            Objects: <span className="font-bold">{vrSceneObjects.length}</span>
-          </div>
-          <div>
-            Status: <span className="text-green-400 animate-pulse">Live</span>
-          </div>
-        </div>
+        </aside>
       </div>
     </div>
   );
-};
-
-export default VRModule;
+}
