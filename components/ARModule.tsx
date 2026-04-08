@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Language } from "../types";
 
@@ -6,6 +6,8 @@ interface ARModuleProps {
   lang: Language;
   onBack: () => void;
 }
+
+type ARStatus = "loading" | "ready" | "marker-found" | "marker-lost" | "camera-error";
 
 const uiText = {
   uz: {
@@ -15,7 +17,7 @@ const uiText = {
     marker: "Marker: Hiro",
     compatibility: "Mos brauzer: Chrome / Android",
     mobileHint:
-      "Telefon kamerasi ochilgach, Hiro markerga qarating. Marker aniqlansa 3D obyekt va sarlavha ko'rinadi.",
+      "Kamera ochilgach, Hiro markerini boshqa ekran yoki qog'ozda kameraga tuting. Marker topilganda obyekt chiqadi.",
     desktopFallback: "Please open this feature on your mobile device to use AR.",
     fallbackHint:
       "Bu AR sahna mobil brauzer uchun mo'ljallangan. Telefon orqali ochib ko'ring.",
@@ -23,39 +25,67 @@ const uiText = {
     checklist: [
       "1. Sahifani telefonda oching.",
       "2. Kamera ruxsatini bering.",
-      "3. Hiro markerini ekranga tuting.",
-      "4. 3D obyekt animatsiya bilan paydo bo'ladi.",
+      "3. Hiro markerini print qiling yoki boshqa ekranda oching.",
+      "4. Kamerani markerga qarating.",
+      "5. Marker topilganda 3D obyekt paydo bo'ladi.",
     ],
+    statusLabel: "Holat",
+    statusMap: {
+      loading: "AR sahna yuklanmoqda",
+      ready: "Kamera tayyor, marker kutilmoqda",
+      "marker-found": "Marker topildi, obyekt faol",
+      "marker-lost": "Marker yo'qoldi, qayta qarating",
+      "camera-error": "Kamera bilan bog'liq xato",
+    },
+    markerHelpTitle: "Muhim eslatma",
+    markerHelpBody:
+      "Agar marker shu telefon ekranida bo'lsa, kamera uni ko'ra olmaydi. Marker boshqa telefon, monitor yoki printda bo'lishi kerak.",
+    markerPreviewTitle: "Hiro marker preview",
+    previewHint: "Quyidagi marker tasvirini boshqa qurilmada oching yoki print qiling.",
     back: "Orqaga",
   },
   ru: {
-    title: "WebAR С Marker Tracking",
+    title: "WebAR C Marker Tracking",
     subtitle:
-      "Откройте камеру на мобильном устройстве и наведите её на Hiro marker для AR просмотра факультета.",
+      "Откройте камеру на мобильном устройстве и наведите ее на Hiro marker для просмотра AR сцены факультета.",
     marker: "Маркер: Hiro",
     compatibility: "Совместимо: Chrome / Android",
     mobileHint:
-      "После запуска камеры наведите устройство на Hiro marker. При распознавании появятся 3D объект и заголовок.",
+      "После запуска камеры покажите Hiro marker с другого экрана или на бумаге. Объект появится после распознавания.",
     desktopFallback: "Please open this feature on your mobile device to use AR.",
     fallbackHint:
-      "Эта AR сцена предназначена для мобильного браузера. Откройте её на телефоне.",
+      "Эта AR сцена предназначена для мобильного браузера. Откройте ее на телефоне.",
     checklistTitle: "Как использовать",
     checklist: [
       "1. Откройте страницу на телефоне.",
       "2. Разрешите доступ к камере.",
-      "3. Наведите камеру на Hiro marker.",
-      "4. 3D объект появится с анимацией.",
+      "3. Откройте Hiro marker на другом экране или распечатайте его.",
+      "4. Наведите камеру на marker.",
+      "5. После распознавания появится 3D объект.",
     ],
+    statusLabel: "Статус",
+    statusMap: {
+      loading: "AR сцена загружается",
+      ready: "Камера готова, ожидание marker",
+      "marker-found": "Marker найден, объект активен",
+      "marker-lost": "Marker потерян, наведите снова",
+      "camera-error": "Ошибка доступа к камере",
+    },
+    markerHelpTitle: "Важное примечание",
+    markerHelpBody:
+      "Если marker находится на экране этого же телефона, камера не сможет его увидеть. Откройте его на другом устройстве или распечатайте.",
+    markerPreviewTitle: "Hiro marker preview",
+    previewHint: "Откройте marker ниже на другом устройстве или распечатайте.",
     back: "Назад",
   },
   en: {
     title: "WebAR Marker Experience",
     subtitle:
-      "Open the camera on a mobile device and point it at the Hiro marker to preview the faculty AR scene.",
+      "Open the camera on a mobile device and point it at a Hiro marker to preview the faculty AR scene.",
     marker: "Marker: Hiro",
     compatibility: "Compatible with: Chrome / Android",
     mobileHint:
-      "Once the camera opens, aim it at the Hiro marker. The 3D object and title will appear when the marker is detected.",
+      "After the camera opens, show the Hiro marker from another screen or a printed sheet. The object appears when the marker is detected.",
     desktopFallback: "Please open this feature on your mobile device to use AR.",
     fallbackHint:
       "This AR scene is intended for mobile browsers. Open it on your phone to use the camera.",
@@ -63,9 +93,23 @@ const uiText = {
     checklist: [
       "1. Open the page on your phone.",
       "2. Allow camera access.",
-      "3. Point the camera at the Hiro marker.",
-      "4. The 3D object appears with animation.",
+      "3. Open the Hiro marker on another screen or print it.",
+      "4. Point the camera at the marker.",
+      "5. The 3D object appears when the marker is detected.",
     ],
+    statusLabel: "Status",
+    statusMap: {
+      loading: "Loading AR scene",
+      ready: "Camera ready, waiting for marker",
+      "marker-found": "Marker detected, object active",
+      "marker-lost": "Marker lost, aim again",
+      "camera-error": "Camera access error",
+    },
+    markerHelpTitle: "Important note",
+    markerHelpBody:
+      "If the marker is on the same phone screen, the camera cannot see it. Open it on another phone, monitor, or print it.",
+    markerPreviewTitle: "Hiro marker preview",
+    previewHint: "Open the marker below on another device or print it.",
     back: "Back",
   },
 } as const;
@@ -73,160 +117,12 @@ const uiText = {
 const mobileUserAgentPattern =
   /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i;
 
-function buildArDocument(title: string) {
-  const overlaySvg = encodeURIComponent(`
-    <svg xmlns="http://www.w3.org/2000/svg" width="512" height="256" viewBox="0 0 512 256">
-      <defs>
-        <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stop-color="#22d3ee"/>
-          <stop offset="100%" stop-color="#818cf8"/>
-        </linearGradient>
-      </defs>
-      <rect width="512" height="256" rx="28" fill="#06131f"/>
-      <rect x="16" y="16" width="480" height="224" rx="22" fill="url(#g)" opacity="0.18"/>
-      <text x="36" y="92" fill="#d9f7ff" font-family="Arial, Helvetica, sans-serif" font-size="34" font-weight="700">
-        TV Faculty
-      </text>
-      <text x="36" y="138" fill="#8fdfff" font-family="Arial, Helvetica, sans-serif" font-size="26">
-        AR overlay preview
-      </text>
-      <text x="36" y="184" fill="#c4fbff" font-family="Arial, Helvetica, sans-serif" font-size="20">
-        Marker detected content panel
-      </text>
-    </svg>
-  `);
-
-  return `<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"
-    />
-    <title>TV Faculty WebAR</title>
-    <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
-    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
-    <style>
-      html, body {
-        margin: 0;
-        width: 100%;
-        height: 100%;
-        overflow: hidden;
-        background: #000;
-        font-family: Arial, Helvetica, sans-serif;
-      }
-      .ar-note {
-        position: fixed;
-        left: 50%;
-        bottom: 18px;
-        transform: translateX(-50%);
-        z-index: 20;
-        padding: 10px 14px;
-        border-radius: 999px;
-        background: rgba(3, 7, 18, 0.72);
-        color: #d8f8ff;
-        border: 1px solid rgba(34, 211, 238, 0.35);
-        font-size: 12px;
-        letter-spacing: 0.04em;
-        text-align: center;
-        backdrop-filter: blur(12px);
-      }
-    </style>
-    <script>
-      window.addEventListener("DOMContentLoaded", function () {
-        AFRAME.registerComponent("marker-feedback", {
-          init: function () {
-            var note = document.getElementById("ar-note");
-            this.el.addEventListener("markerFound", function () {
-              note.textContent = "Marker detected. AR object is active.";
-            });
-            this.el.addEventListener("markerLost", function () {
-              note.textContent = "Point the camera at the Hiro marker.";
-            });
-          }
-        });
-
-        AFRAME.registerComponent("tap-pulse", {
-          init: function () {
-            var el = this.el;
-            var enlarged = false;
-            el.addEventListener("click", function () {
-              enlarged = !enlarged;
-              el.setAttribute(
-                "animation__tap",
-                "property: scale; to: " + (enlarged ? "1.35 1.35 1.35" : "1 1 1") + "; dur: 280; easing: easeInOutQuad"
-              );
-            });
-          }
-        });
-      });
-    </script>
-  </head>
-  <body>
-    <div id="ar-note" class="ar-note">Point the camera at the Hiro marker.</div>
-
-    <a-scene
-      embedded
-      vr-mode-ui="enabled: false"
-      device-orientation-permission-ui="enabled: false"
-      renderer="antialias: true; alpha: true"
-      arjs="trackingMethod: best; sourceType: webcam; debugUIEnabled: false;"
-    >
-      <a-assets>
-        <img id="facultyOverlay" src="data:image/svg+xml;charset=utf-8,${overlaySvg}" />
-      </a-assets>
-
-      <a-marker preset="hiro" marker-feedback>
-        <a-entity position="0 0.2 0">
-          <a-box
-            position="0 0.7 0"
-            depth="0.8"
-            height="0.8"
-            width="0.8"
-            color="#22d3ee"
-            material="metalness: 0.25; roughness: 0.3;"
-            animation="property: rotation; to: 0 360 0; loop: true; dur: 5000; easing: linear"
-            animation__float="property: position; dir: alternate; dur: 1800; loop: true; to: 0 0.95 0"
-            tap-pulse
-          ></a-box>
-
-          <a-ring
-            position="0 0.18 0"
-            rotation="-90 0 0"
-            radius-inner="0.95"
-            radius-outer="1.15"
-            color="#818cf8"
-            animation="property: rotation; to: -90 0 360; loop: true; dur: 6000; easing: linear"
-          ></a-ring>
-
-          <a-text
-            value="${title}"
-            position="0 1.85 0"
-            align="center"
-            color="#FFFFFF"
-            width="4.8"
-            shader="msdf"
-          ></a-text>
-
-          <a-plane
-            src="#facultyOverlay"
-            position="0 1.1 -0.95"
-            width="2.6"
-            height="1.3"
-            material="transparent: true"
-          ></a-plane>
-        </a-entity>
-      </a-marker>
-
-      <a-entity camera></a-entity>
-    </a-scene>
-  </body>
-</html>`;
-}
+const hiroMarkerUrl =
+  "https://raw.githubusercontent.com/AR-js-org/AR.js/master/data/images/hiro.png";
 
 export default function ARModule({ lang, onBack }: ARModuleProps) {
   const [isMobile, setIsMobile] = useState(false);
+  const [status, setStatus] = useState<ARStatus>("loading");
   const text = uiText[lang];
 
   useEffect(() => {
@@ -236,10 +132,27 @@ export default function ARModule({ lang, onBack }: ARModuleProps) {
     setIsMobile(mobileUserAgentPattern.test(userAgent) || (hasTouch && coarsePointer));
   }, []);
 
-  const arDocument = useMemo(
-    () => buildArDocument("TV Faculty - AR View"),
-    [],
-  );
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      const data = event.data;
+      if (!data || data.source !== "tv-tech-ar") return;
+
+      if (data.type === "status" && typeof data.value === "string") {
+        if (
+          data.value === "loading" ||
+          data.value === "ready" ||
+          data.value === "marker-found" ||
+          data.value === "marker-lost" ||
+          data.value === "camera-error"
+        ) {
+          setStatus(data.value);
+        }
+      }
+    };
+
+    window.addEventListener("message", handleMessage);
+    return () => window.removeEventListener("message", handleMessage);
+  }, []);
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-[#030712] text-white">
@@ -259,21 +172,29 @@ export default function ARModule({ lang, onBack }: ARModuleProps) {
           </button>
         </div>
 
-        <div className="grid flex-1 grid-cols-1 gap-6 p-5 md:p-8 xl:grid-cols-[minmax(0,1fr)_340px]">
+        <div className="grid flex-1 grid-cols-1 gap-6 p-5 md:p-8 xl:grid-cols-[minmax(0,1fr)_380px]">
           <div className="relative min-h-[60vh] overflow-hidden rounded-[2rem] border border-white/10 bg-black/60 shadow-[0_0_60px_rgba(0,0,0,0.35)]">
             {isMobile ? (
               <>
                 <iframe
                   title="TV Faculty WebAR"
-                  srcDoc={arDocument}
+                  src="/ar-experience.html"
                   allow="camera; microphone; accelerometer; gyroscope"
                   className="h-full min-h-[60vh] w-full border-0"
                 />
-                <div className="pointer-events-none absolute left-4 top-4 max-w-xs rounded-2xl border border-white/10 bg-black/55 px-4 py-3 backdrop-blur-md">
+                <div className="pointer-events-none absolute left-4 top-4 max-w-sm rounded-2xl border border-white/10 bg-black/60 px-4 py-3 backdrop-blur-md">
                   <p className="text-xs uppercase tracking-[0.32em] text-cyan-300">
                     {text.compatibility}
                   </p>
                   <p className="mt-2 text-sm leading-6 text-white/70">{text.mobileHint}</p>
+                </div>
+                <div className="absolute right-4 top-4 rounded-2xl border border-white/10 bg-black/60 px-4 py-3 text-sm backdrop-blur-md">
+                  <p className="text-[11px] uppercase tracking-[0.28em] text-white/40">
+                    {text.statusLabel}
+                  </p>
+                  <p className="mt-2 font-medium text-cyan-300">
+                    {text.statusMap[status]}
+                  </p>
                 </div>
               </>
             ) : (
@@ -303,6 +224,13 @@ export default function ARModule({ lang, onBack }: ARModuleProps) {
             </p>
             <p className="mt-4 text-sm leading-6 text-white/65">{text.subtitle}</p>
 
+            <div className="mt-6 rounded-3xl border border-cyan-500/20 bg-cyan-500/10 p-5">
+              <p className="text-xs uppercase tracking-[0.32em] text-cyan-300">
+                {text.statusLabel}
+              </p>
+              <p className="mt-3 text-sm leading-6 text-white/70">{text.statusMap[status]}</p>
+            </div>
+
             <div className="mt-6 rounded-3xl border border-white/10 bg-white/[0.03] p-5">
               <p className="text-xs uppercase tracking-[0.32em] text-white/40">
                 {text.checklistTitle}
@@ -319,15 +247,37 @@ export default function ARModule({ lang, onBack }: ARModuleProps) {
               </div>
             </div>
 
-            <div className="mt-6 rounded-3xl border border-cyan-500/20 bg-cyan-500/10 p-5">
+            <div className="mt-6 rounded-3xl border border-white/10 bg-white/[0.03] p-5">
               <p className="text-xs uppercase tracking-[0.32em] text-cyan-300">
-                A-Frame + AR.js
+                {text.markerHelpTitle}
               </p>
               <p className="mt-3 text-sm leading-6 text-white/65">
-                Marker aniqlanganda 3D box, aylanish animatsiyasi, floating effect,
-                sarlavha va image overlay chiqadi. Box ustiga tap qilsangiz, obyekt
-                kattalashib-kichrayadi.
+                {text.markerHelpBody}
               </p>
+            </div>
+
+            <div className="mt-6 rounded-3xl border border-white/10 bg-white/[0.03] p-5">
+              <p className="text-xs uppercase tracking-[0.32em] text-cyan-300">
+                {text.markerPreviewTitle}
+              </p>
+              <p className="mt-3 text-sm leading-6 text-white/65">
+                {text.previewHint}
+              </p>
+              <div className="mt-4 rounded-2xl overflow-hidden border border-white/10 bg-white p-4">
+                <img
+                  src={hiroMarkerUrl}
+                  alt="Hiro marker"
+                  className="w-full h-auto object-contain"
+                />
+              </div>
+              <a
+                href={hiroMarkerUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-4 inline-flex items-center gap-2 rounded-full border border-cyan-500/30 bg-cyan-500/10 px-4 py-2 text-sm text-cyan-300 hover:bg-cyan-500/20 transition"
+              >
+                Hiro marker ochish
+              </a>
             </div>
           </aside>
         </div>
