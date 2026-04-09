@@ -1,4 +1,4 @@
-import React, { useState, useRef, useMemo } from 'react';
+import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { Float, Sphere, MeshDistortMaterial, PerspectiveCamera } from '@react-three/drei';
@@ -9,6 +9,22 @@ import { TRANSLATIONS, PROGRAMS } from '../constants';
 // Fix: Define intrinsic elements as any to avoid 'Property does not exist on type JSX.IntrinsicElements' errors
 const AmbientLight = 'ambientLight' as any;
 const PointLight = 'pointLight' as any;
+
+const PROGRAMS_UI = {
+  sourceButton: {
+    uz: 'Rasmiy manbani ochish',
+    ru: 'Открыть официальный источник',
+    en: 'Open official source',
+  },
+  modalEyebrow: {
+    uz: "Rasmiy ta'lim dasturi",
+    ru: 'Официальная образовательная программа',
+    en: 'Official academic program',
+  },
+};
+
+const getProgramStatValue = (value: string | Record<Language, string>, lang: Language) =>
+  typeof value === 'string' ? value : value[lang];
 
 const ProgramIcon3D = ({ color }: { color: string }) => {
   const meshRef = useRef<THREE.Mesh>(null!);
@@ -63,6 +79,16 @@ const ProgramCard = ({ program, lang, onSelect }: { program: Program, lang: Lang
       </div>
 
       <div className="relative z-10">
+        <div className="flex flex-wrap gap-2 mb-4">
+          {program.stats.slice(0, 2).map((stat, i) => (
+            <span
+              key={i}
+              className="px-3 py-1 rounded-full border border-white/10 bg-white/5 text-[10px] font-bold uppercase tracking-widest text-cyan-300"
+            >
+              {getProgramStatValue(stat.value, lang)}
+            </span>
+          ))}
+        </div>
         <h3 className="text-3xl font-black mb-4 group-hover:text-cyan-400 transition-colors">
           {program.title[lang]}
         </h3>
@@ -114,7 +140,7 @@ const ProgramModal = ({ program, lang, onClose }: { program: Program, lang: Lang
 
           <div>
             <span className="text-[10px] font-black uppercase tracking-[0.5em] text-cyan-500 mb-4 block">
-              FACULTY PROGRAM
+              {PROGRAMS_UI.modalEyebrow[lang]}
             </span>
             <h2 className="text-5xl font-black mb-8 leading-tight">
               {program.title[lang]}
@@ -127,14 +153,20 @@ const ProgramModal = ({ program, lang, onClose }: { program: Program, lang: Lang
               {program.stats.map((stat, i) => (
                 <div key={i} className="glass p-6 rounded-3xl">
                   <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">{stat.label[lang]}</p>
-                  <p className="text-2xl font-black text-white">{stat.value}</p>
+                  <p className="text-2xl font-black text-white">{getProgramStatValue(stat.value, lang)}</p>
                 </div>
               ))}
             </div>
 
-            <button className="w-full mt-12 py-6 bg-white text-black font-black uppercase tracking-widest rounded-2xl hover:bg-cyan-500 hover:text-white transition-all">
-              Apply Now
-            </button>
+            <a
+              href={program.sourceUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="w-full mt-12 py-6 bg-white text-black font-black uppercase tracking-widest rounded-2xl hover:bg-cyan-500 hover:text-white transition-all flex items-center justify-center gap-3 text-center"
+            >
+              <span>{program.sourceLabel[lang] || PROGRAMS_UI.sourceButton[lang]}</span>
+              <i className="fas fa-arrow-up-right-from-square"></i>
+            </a>
           </div>
         </div>
       </motion.div>

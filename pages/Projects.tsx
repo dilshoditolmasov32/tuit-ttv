@@ -18,46 +18,7 @@ import { TRANSLATIONS, PROJECTS } from '../constants';
 const AmbientLight = 'ambientLight' as any;
 const PointLight = 'pointLight' as any;
 
-const StudentGallery3D = () => {
-  return (
-    <div className="h-[400px] w-full glass rounded-[4rem] overflow-hidden relative mb-24">
-      <Canvas dpr={[1, 2]}>
-        <PerspectiveCamera makeDefault position={[0, 0, 5]} />
-        <AmbientLight intensity={0.5} />
-        <PointLight position={[10, 10, 10]} intensity={1.5} color="#00f2fe" />
-        
-        <PresentationControls
-          global
-          config={{ mass: 2, tension: 500 }}
-          snap={{ mass: 4, tension: 1500 }}
-          rotation={[0, 0.3, 0]}
-          polar={[-Math.PI / 3, Math.PI / 3]}
-          azimuth={[-Math.PI / 1.4, Math.PI / 1.4]}
-        >
-          <Float speed={5} rotationIntensity={2} floatIntensity={2}>
-            <TorusKnot args={[1, 0.3, 128, 16]}>
-              <MeshDistortMaterial
-                color="#00f2fe"
-                speed={3}
-                distort={0.4}
-                radius={1}
-                metalness={0.8}
-                roughness={0.1}
-                emissive="#00f2fe"
-                emissiveIntensity={0.5}
-              />
-            </TorusKnot>
-          </Float>
-        </PresentationControls>
-        
-        <ContactShadows position={[0, -2, 0]} opacity={0.4} scale={10} blur={2} far={4} />
-      </Canvas>
-      <div className="absolute bottom-10 left-10 text-xs font-bold uppercase tracking-[0.4em] text-white/40">
-        3D Interaction Lab / Student Sculpture #102
-      </div>
-    </div>
-  );
-};
+
 
 const ProjectCard = ({ project, lang, onSelect }: { project: StudentProject, lang: Language, onSelect: () => void }) => {
   return (
@@ -195,11 +156,7 @@ const Projects: React.FC<{ lang: Language }> = ({ lang }) => {
           </p>
         </div>
 
-        <h3 className="text-xs font-black text-cyan-500 uppercase tracking-[0.5em] mb-12 text-center">
-          {TRANSLATIONS[lang].gallery3D}
-        </h3>
-        <StudentGallery3D />
-
+        
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
           {PROJECTS.map((proj) => (
             <ProjectCard 

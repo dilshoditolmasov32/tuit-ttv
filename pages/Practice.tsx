@@ -413,17 +413,14 @@ export default function Practice({ lang }: PracticeProps) {
         }}
       />
 
-      <div className="relative z-10 max-w-6xl mx-auto px-6 py-20">
+      <div className="relative z-10 max-w-6xl mx-auto mt-10 px-6 py-20">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
           className="text-center mb-16"
         >
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-cyan-500/30 bg-cyan-500/5 text-cyan-400 text-xs mb-6">
-            <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
-            Interaktiv laboratoriya
-          </div>
+          
           <h1 className="text-5xl font-bold mb-4 tracking-tight">
             VR/AR{" "}
             <span
@@ -490,14 +487,7 @@ export default function Practice({ lang }: PracticeProps) {
           ))}
         </div>
 
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.6 }}
-          className="mt-12 text-center text-white/20 text-xs"
-        >
-          Brauzer orqali ishlaydi · Qurilma kerak emas · WebGL 2.0
-        </motion.div>
+      
       </div>
     </div>
   );

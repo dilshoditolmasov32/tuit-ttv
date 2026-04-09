@@ -11,11 +11,27 @@ export interface StaffMember {
   name: Record<Language, string>;
   role: Record<Language, string>;
   image: string;
+  email: string;
+  profileUrl: string;
+  office: Record<Language, string>;
   bio: Record<Language, string>;
+  highlights: Record<Language, string>[];
   career: {
     year: string;
     desc: Record<Language, string>;
   }[];
+}
+
+export interface HistoryItem {
+  year: string;
+  dateLabel: Record<Language, string>;
+  title: Record<Language, string>;
+  desc: Record<Language, string>;
+  facts: Record<Language, string>[];
+  metricLabel: Record<Language, string>;
+  metricValue: string;
+  sourceLabel: Record<Language, string>;
+  sourceUrl: string;
 }
 
 export interface Lecture {
@@ -33,7 +49,9 @@ export interface Program {
   fullDesc: Record<Language, string>;
   icon: string;
   color: string;
-  stats: { label: Record<Language, string>; value: string }[];
+  stats: { label: Record<Language, string>; value: string | Record<Language, string> }[];
+  sourceLabel: Record<Language, string>;
+  sourceUrl: string;
 }
 
 export interface StudentProject {

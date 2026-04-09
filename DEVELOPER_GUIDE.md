@@ -135,9 +135,7 @@ state [], cameras, detection info
 - `wheel`: Scroll zoom
 - Camera initialization & permission handling
 
----
 
-## 📦 Service Files
 
 ### vrUtils.ts
 

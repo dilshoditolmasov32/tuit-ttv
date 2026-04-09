@@ -1,27 +1,44 @@
+import React, { useState } from "react";
+import { Link } from "react-router-dom";
+import {
+  motion,
+  AnimatePresence,
+  useScroll,
+  useTransform,
+} from "framer-motion";
+import Scene3D from "../components/Scene3D";
+import { Language, StaffMember } from "../types";
+import { TRANSLATIONS, STAFF } from "../constants";
+import { getAiResponse } from "../services/gemini";
 
-import React, { useState } from 'react';
-import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
-import Scene3D from '../components/Scene3D';
-import { Language, StaffMember } from '../types';
-import { TRANSLATIONS, STAFF } from '../constants';
-import { getAiResponse } from '../services/gemini';
 
-const SectionHeader = ({ title, subtitle }: { title: string, subtitle?: string }) => (
+const SectionHeader = ({
+  title,
+  subtitle,
+}: {
+  title: string;
+  subtitle?: string;
+}) => (
   <div className="mb-20 text-center">
-    <motion.h2 
-      whileInView={{ opacity: 1, y: 0 }} initial={{ opacity: 0, y: 30 }}
+    <motion.h2
+      whileInView={{ opacity: 1, y: 0 }}
+      initial={{ opacity: 0, y: 30 }}
       viewport={{ once: true }}
       className="text-5xl md:text-7xl font-black mb-6 uppercase"
     >
       {title}
     </motion.h2>
-    {subtitle && <p className="text-gray-500 tracking-[0.2em] uppercase text-sm">{subtitle}</p>}
+    {subtitle && (
+      <p className="text-gray-500 tracking-[0.2em] uppercase text-sm">
+        {subtitle}
+      </p>
+    )}
   </div>
 );
 
 const Home: React.FC<{ lang: Language }> = ({ lang }) => {
-  const [query, setQuery] = useState('');
-  const [aiResult, setAiResult] = useState('');
+  const [query, setQuery] = useState("");
+  const [aiResult, setAiResult] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleAiAsk = async (e: React.FormEvent) => {
@@ -30,8 +47,8 @@ const Home: React.FC<{ lang: Language }> = ({ lang }) => {
 
     setLoading(true);
     const res = await getAiResponse(query);
-     setQuery(""); 
-    setAiResult(res || '');
+    setQuery("");
+    setAiResult(res || "");
     setLoading(false);
   };
 
@@ -39,31 +56,39 @@ const Home: React.FC<{ lang: Language }> = ({ lang }) => {
     <div className="relative">
       <Scene3D />
 
-      {/* 1. HERO SECTION */}
-      <section className="h-screen flex flex-col items-center justify-center text-center px-6">
+    
+      <section
+        className="h-screen flex flex-col items-center justify-center text-center px-6 relative overflow-hidden"
+        
+      >
+        
+        <div className="absolute inset-0 bg-black/30"></div>
+
         <motion.div
           initial={{ opacity: 0, y: 50 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+          className="relative z-10"
         >
-          <h1 className="text-5xl md:text-[7rem] font-black leading-none mb-8 tracking-tighter">
+          <h1 className="text-5xl md:text-[6rem] font-black leading-none mb-8 tracking-tighter">
             {TRANSLATIONS[lang].welcome.toUpperCase()}
           </h1>
-          <p className="text-gray-400 text-lg md:text-xl max-w-2xl mx-auto font-light leading-relaxed">
+          <p className="text-white text-lg md:text-xl max-w-2xl mx-auto font-light leading-relaxed">
             {TRANSLATIONS[lang].heroSubtitle}
           </p>
           <div className="mt-12">
-            <button className="px-10 py-5 bg-white text-black font-bold rounded-full hover:bg-cyan-400 hover:text-white transition-all transform hover:scale-105 active:scale-95 shadow-2xl shadow-cyan-500/20">
-              {TRANSLATIONS[lang].explore}{" "}
+            <Link
+              to="/practice"
+              className="inline-flex items-center justify-center px-10 py-5 bg-white text-black font-bold rounded-full hover:bg-cyan-400 hover:text-white transition-all transform hover:scale-105 active:scale-95 shadow-2xl shadow-cyan-500/20"
+            >
+              {TRANSLATIONS[lang].explore}
               <i className="fas fa-arrow-right ml-2 text-xs"></i>
-            </button>
+            </Link>
           </div>
         </motion.div>
 
-        <div className="absolute bottom-12 flex flex-col items-center gap-4 text-gray-500">
-          <span className="text-[10px] uppercase tracking-[0.4em]">
-            {TRANSLATIONS[lang].scrolldown}
-          </span>
+        <div className="absolute bottom-12 flex flex-col items-center gap-4 text-gray-500 z-10">
+         
           <motion.div
             animate={{ y: [0, 10, 0] }}
             transition={{ repeat: Infinity, duration: 2 }}
@@ -83,7 +108,7 @@ const Home: React.FC<{ lang: Language }> = ({ lang }) => {
               <h2 className="text-5xl font-black mb-8">
                 {TRANSLATIONS[lang].whatIsTitle}
               </h2>
-              <p className="text-xl text-gray-400 leading-relaxed font-light text-justify">
+              <p className="text-xl text-gray-200 leading-relaxed font-light text-justify">
                 {TRANSLATIONS[lang].whatIsDesc}
               </p>
               <div className="mt-10 grid grid-cols-2 gap-8">
@@ -124,7 +149,7 @@ const Home: React.FC<{ lang: Language }> = ({ lang }) => {
           </div>
         </section>
 
-        {/* 3. VR / AR PREVIEW */}
+        
         <section className="container mx-auto px-6">
           <SectionHeader title={TRANSLATIONS[lang].vrarTitle} />
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -168,7 +193,7 @@ const Home: React.FC<{ lang: Language }> = ({ lang }) => {
           </p>
         </section>
 
-        {/* 4. STATS SECTION */}
+        
         <section className="container mx-auto px-6">
           <div className="grid grid-cols-2 md:grid-cols-3 gap-12">
             {[
@@ -194,7 +219,7 @@ const Home: React.FC<{ lang: Language }> = ({ lang }) => {
           </div>
         </section>
 
-        {/* AI ADVISOR (Part of storytelling) */}
+        
         <section className="container mx-auto px-6">
           <div className="glass rounded-[4rem] p-10 md:p-20 relative overflow-hidden">
             <div className="absolute top-0 right-0 w-96 h-96 bg-cyan-500/10 blur-[100px] rounded-full"></div>
@@ -225,7 +250,7 @@ const Home: React.FC<{ lang: Language }> = ({ lang }) => {
                     {loading ? (
                       <i className="fas fa-spinner fa-spin"></i>
                     ) : (
-                      <i className="fas fa-paper-plane"></i>
+                      <i className="fas fa-robot"></i>
                     )}
                   </button>
                 </form>

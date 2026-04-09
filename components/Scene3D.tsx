@@ -1,6 +1,7 @@
 
 import React, { useRef, useMemo } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
+import logoImg from '../assests/logo.jpg';
 import { 
   Float, 
   Sphere, 
@@ -80,15 +81,18 @@ const Experience = () => {
 
 const Scene3D: React.FC = () => {
   return (
-    <div className="fixed inset-0 -z-10 bg-[#050505]">
+    <div
+      className="fixed inset-0 -z-10 bg-[#050505]"
+      
+    >
       <Canvas dpr={[1, 2]}>
         <PerspectiveCamera makeDefault fov={35} position={[0, 0, 8]} />
         <AmbientLight intensity={0.2} />
         <PointLight position={[10, 10, 10]} intensity={1.5} color="#4facfe" />
         <PointLight position={[-10, -5, -10]} intensity={1} color="#00f2fe" />
-        
+
         <ScrollControls pages={4} damping={0.2}>
-            <Experience />
+          <Experience />
         </ScrollControls>
       </Canvas>
     </div>

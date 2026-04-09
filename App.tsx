@@ -1,33 +1,32 @@
+import React, { useState, useEffect, useRef } from "react";
+import { HashRouter, Routes, Route, Link, useLocation } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
+import { NAV_ITEMS, TRANSLATIONS } from "./constants";
+import { Language } from "./types";
+import logoIcon from "./assests/logo.jpg";
 
-import React, { useState, useEffect, useRef } from 'react';
-import { HashRouter, Routes, Route, Link, useLocation } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { NAV_ITEMS, TRANSLATIONS } from './constants';
-import { Language } from './types';
-import logoIcon from "./assests/logo.jpg"
-
-import Home from './pages/Home';
-import About from './pages/About';
-import Programs from './pages/Programs';
-import Projects from './pages/Projects';
-import News from './pages/News';
-import Contact from './pages/Contact';
-import Lectures from './pages/Lectures';
-import Videos from './pages/Videos';
-import Practice from './pages/Practice';
-import Tests from './pages/Tests';
+import Home from "./pages/Home";
+import About from "./pages/About";
+import Programs from "./pages/Programs";
+import Projects from "./pages/Projects";
+import News from "./pages/News";
+import Contact from "./pages/Contact";
+import Lectures from "./pages/Lectures";
+import Videos from "./pages/Videos";
+import Practice from "./pages/Practice";
+import Tests from "./pages/Tests";
 
 const LoadingScreen = ({ onComplete }: { onComplete: () => void }) => {
   const [progress, setProgress] = useState(0);
-  const [statusText, setStatusText] = useState('Initializing TUIT_TV_CORE...');
+  const [statusText, setStatusText] = useState("Initializing TUIT_TV_CORE...");
 
   const loadingMessages = [
-    'Establishing satellite connection...',
-    'Rendering 3D Campus environments...',
-    'Syncing VR laboratory data...',
-    'Loading academic modules...',
-    'Preparing AR interface...',
-    'Ready to transmit.'
+    "Peyk uzlanishini o'rnatish...",
+    "3D kampus muhitini renderlash...",
+    "VR laboratoriya ma'lumotlarini sinxronizatsiya qilish...",
+    "O'quv modullarini yuklab olish...",
+    "AR interfeyni tayyorlash...",
+    "Uzatishga tayyor.",
   ];
 
   useEffect(() => {
@@ -54,7 +53,7 @@ const LoadingScreen = ({ onComplete }: { onComplete: () => void }) => {
   }, [progress]);
 
   return (
-    <motion.div 
+    <motion.div
       exit={{ opacity: 0, scale: 1.1 }}
       transition={{ duration: 0.8, ease: "easeInOut" }}
       className="fixed inset-0 z-[300] bg-[#050505] flex flex-col items-center justify-center p-12 overflow-hidden"
@@ -63,17 +62,19 @@ const LoadingScreen = ({ onComplete }: { onComplete: () => void }) => {
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-cyan-500/10 blur-[150px] rounded-full"></div>
 
       <div className="relative w-full max-w-2xl text-center">
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           className="text-[8rem] md:text-[14rem] font-black font-space leading-none tracking-tighter mb-4 flex justify-center items-baseline"
         >
-          <span className="text-white drop-shadow-[0_0_30px_rgba(255,255,255,0.2)]">{progress}</span>
+          <span className="text-white drop-shadow-[0_0_30px_rgba(255,255,255,0.2)]">
+            {progress}
+          </span>
           <span className="text-cyan-500 text-3xl font-light ml-2">%</span>
         </motion.div>
 
         <div className="w-full h-1 bg-white/5 rounded-full mb-12 relative overflow-hidden">
-          <motion.div 
+          <motion.div
             initial={{ width: 0 }}
             animate={{ width: `${progress}%` }}
             className="h-full bg-cyan-500 shadow-[0_0_20px_rgba(0,242,254,1)] relative"
@@ -84,7 +85,7 @@ const LoadingScreen = ({ onComplete }: { onComplete: () => void }) => {
 
         <div className="h-8 overflow-hidden">
           <AnimatePresence mode="wait">
-            <motion.p 
+            <motion.p
               key={statusText}
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
@@ -100,40 +101,49 @@ const LoadingScreen = ({ onComplete }: { onComplete: () => void }) => {
   );
 };
 
-const LanguageSelector = ({ lang, setLang }: { lang: Language, setLang: (l: Language) => void }) => {
+const LanguageSelector = ({
+  lang,
+  setLang,
+}: {
+  lang: Language;
+  setLang: (l: Language) => void;
+}) => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const languages = [
-    { code: 'uz', label: "O'zbek", flag: '🇺🇿' },
-    { code: 'ru', label: "Русский", flag: '🇷🇺' },
-    { code: 'en', label: "English", flag: '🇺🇸' },
+    { code: "uz", label: "O'zbek", flag: "🇺🇿" },
+    { code: "ru", label: "Русский", flag: "🇷🇺" },
+    { code: "en", label: "English", flag: "🇺🇸" },
   ];
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
         setIsOpen(false);
       }
     };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const currentLang = languages.find(l => l.code === lang);
+  const currentLang = languages.find((l) => l.code === lang);
 
   return (
     <div className="relative" ref={dropdownRef}>
-      <button 
+      <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`flex items-center gap-3 px-4 py-2 glass rounded-xl border transition-all duration-500 ${isOpen ? 'border-cyan-500 shadow-[0_0_20px_rgba(0,242,254,0.1)] bg-cyan-500/5' : 'border-white/10 hover:border-white/30'}`}
+        className={`flex items-center gap-3 px-4 py-2 glass rounded-xl border transition-all duration-500 ${isOpen ? "border-cyan-500 shadow-[0_0_20px_rgba(0,242,254,0.1)] bg-cyan-500/5" : "border-white/10 hover:border-white/30"}`}
       >
-        <span className="text-[10px] font-black uppercase tracking-widest text-white hidden lg:block">
+        <span className="text-xs font-black uppercase tracking-widest text-white hidden lg:block">
           {currentLang?.label}
         </span>
-        <motion.i 
+        <motion.i
           animate={{ rotate: isOpen ? 180 : 0 }}
-          className="fas fa-angle-down text-[8px] text-cyan-500"
+          className="fas fa-angle-down text-sm text-cyan-400"
         ></motion.i>
       </button>
 
@@ -153,9 +163,11 @@ const LanguageSelector = ({ lang, setLang }: { lang: Language, setLang: (l: Lang
                     setLang(l.code as Language);
                     setIsOpen(false);
                   }}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-300 group ${lang === l.code ? 'bg-cyan-500/15 text-cyan-400' : 'hover:bg-white/5 text-gray-400 hover:text-white'}`}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 group text-sm font-bold ${lang === l.code ? "bg-cyan-500/20 text-cyan-300" : "hover:bg-white/10 text-gray-300 hover:text-white"}`}
                 >
-                  <span className="text-[10px] font-bold uppercase tracking-widest">{l.label}</span>
+                  <span className="text-[10px] font-bold uppercase tracking-widest">
+                    {l.label}
+                  </span>
                 </button>
               ))}
             </div>
@@ -166,15 +178,21 @@ const LanguageSelector = ({ lang, setLang }: { lang: Language, setLang: (l: Lang
   );
 };
 
-const Navbar = ({ lang, setLang }: { lang: Language, setLang: (l: Language) => void }) => {
+const Navbar = ({
+  lang,
+  setLang,
+}: {
+  lang: Language;
+  setLang: (l: Language) => void;
+}) => {
   const [scrolled, setScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 50);
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   // Sahifa o'zgarganda mobil menyuni yopish
@@ -185,29 +203,48 @@ const Navbar = ({ lang, setLang }: { lang: Language, setLang: (l: Language) => v
   return (
     <>
       <nav
-        className={`fixed top-0 left-0 w-full z-[150] transition-all duration-500 ${scrolled ? "py-4 glass border-b" : "py-8"}`}
+        className={`fixed top-0 left-0 w-full z-[150] transition-all duration-500 backdrop-blur-md ${
+          scrolled
+            ? "py-2 bg-black/60 border-b border-cyan-500/20" // Skrol bo'lganda yanada kichikroq
+            : "py-4 bg-black/20 border-b border-transparent" // Oddiy holatda ham ixchamroq
+        }`}
       >
         <div className="container mx-auto px-6 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-3 group">
-            <img src={logoIcon} alt="logo icon" width={45} height={45} />
+          <Link
+            to="/"
+            className="flex items-center gap-3 group hover:opacity-80 transition-opacity"
+          >
+            <img
+              src={logoIcon}
+              alt="logo icon"
+              width={50} // 50dan 40ga tushirildi
+              height={50}
+              style={{ borderRadius: "50%", objectFit: "cover" }}
+              className="group-hover:scale-105 transition-transform duration-300 shadow-sm shadow-cyan-500/20"
+            />
 
-            <span className="font-black text-2xl tracking-tighter">
+            <span className="font-extrabold text-xl md:text-2xl tracking-tighter whitespace-nowrap bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">
               TV-TECH
             </span>
           </Link>
 
-          <div className="hidden md:flex items-center gap-10">
+          {/* Markazdagi linklar - shrift o'lchami biroz kichraytirildi */}
+          <div className="hidden md:flex items-center gap-6">
             {NAV_ITEMS.map((item) => (
               <Link
                 key={item.id}
                 to={item.path}
-                className={`text-[10px] font-bold uppercase tracking-[0.2em] transition-all hover:text-cyan-400 relative group ${location.pathname === item.path ? "text-cyan-400" : "text-gray-400"}`}
+                className={`text-[11px] font-bold uppercase tracking-widest transition-all relative group ${
+                  location.pathname === item.path
+                    ? "text-cyan-400"
+                    : "text-gray-400 hover:text-cyan-400"
+                }`}
               >
                 {item.label[lang]}
                 {location.pathname === item.path && (
                   <motion.div
                     layoutId="nav-line"
-                    className="absolute -bottom-2 left-0 w-full h-0.5 bg-cyan-500 rounded-full"
+                    className="absolute -bottom-1 left-0 w-full h-[1.5px] bg-cyan-500 rounded-full"
                   />
                 )}
               </Link>
@@ -217,13 +254,12 @@ const Navbar = ({ lang, setLang }: { lang: Language, setLang: (l: Language) => v
           <div className="flex items-center gap-3">
             <LanguageSelector lang={lang} setLang={setLang} />
 
-            {/* Mobile Hamburger Button */}
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="w-10 h-10 glass rounded-xl flex items-center justify-center md:hidden border border-white/10 hover:border-cyan-500 transition-all text-white"
+              className="w-9 h-9 glass rounded-lg flex items-center justify-center md:hidden border border-white/10 hover:border-cyan-500 transition-all text-white"
             >
               <i
-                className={`fas ${isMobileMenuOpen ? "fa-times" : "fa-bars"}`}
+                className={`fas ${isMobileMenuOpen ? "fa-times" : "fa-bars"} text-sm`}
               ></i>
             </button>
           </div>
@@ -237,7 +273,7 @@ const Navbar = ({ lang, setLang }: { lang: Language, setLang: (l: Language) => v
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: "100%" }}
             transition={{ type: "spring", damping: 25, stiffness: 200 }}
-            className="fixed inset-0 z-[140] glass bg-black/95 flex flex-col pt-32 px-10 pb-10 md:hidden overflow-y-auto"
+            className="fixed inset-0 z-[140] backdrop-blur-md bg-black/80 flex flex-col pt-28 px-10 pb-10 md:hidden overflow-y-auto"
           >
             <div className="flex flex-col gap-6">
               {NAV_ITEMS.map((item, idx) => (
@@ -249,7 +285,11 @@ const Navbar = ({ lang, setLang }: { lang: Language, setLang: (l: Language) => v
                 >
                   <Link
                     to={item.path}
-                    className={`text-3xl font-black uppercase tracking-tighter transition-all ${location.pathname === item.path ? "text-cyan-500" : "text-gray-500 hover:text-white"}`}
+                    className={`text-2xl font-black uppercase tracking-tighter transition-all ${
+                      location.pathname === item.path
+                        ? "text-cyan-400"
+                        : "text-gray-400 hover:text-white"
+                    }`}
                   >
                     {item.label[lang]}
                   </Link>
@@ -257,9 +297,9 @@ const Navbar = ({ lang, setLang }: { lang: Language, setLang: (l: Language) => v
               ))}
             </div>
 
-            <div className="mt-auto pt-10 border-t border-white/5">
+            <div className="mt-auto pt-10 border-t border-white/10">
               <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-4">
-                Contact Info
+                {TRANSLATIONS[lang].contactUs}
               </p>
               <p className="text-gray-400 text-sm mb-2">info@tv-tech.uz</p>
               <p className="text-gray-400 text-sm">+998 71 234 56 78</p>
@@ -277,7 +317,13 @@ const Footer = ({ lang }: { lang: Language }) => (
     <div className="container mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-20 relative">
       <div className="col-span-1 md:col-span-2">
         <div className="flex items-center gap-4 mb-8">
-          <img src={ logoIcon } alt="logo icon" width={45} height={45} />
+          <img
+            src={logoIcon}
+            alt="logo icon"
+            width={50}
+            height={50}
+            style={{ borderRadius: "50%" }}
+          />
           <span className="font-black text-3xl tracking-tighter">TV-TECH</span>
         </div>
         <p className="text-gray-400 text-lg max-w-md leading-relaxed mb-10">
@@ -373,7 +419,7 @@ const Footer = ({ lang }: { lang: Language }) => (
 );
 
 const App: React.FC = () => {
-  const [lang, setLang] = useState<Language>('uz');
+  const [lang, setLang] = useState<Language>("uz");
   const [isLoaded, setIsLoaded] = useState(false);
 
   return (
@@ -381,7 +427,7 @@ const App: React.FC = () => {
       <AnimatePresence mode="wait">
         {!isLoaded && <LoadingScreen onComplete={() => setIsLoaded(true)} />}
       </AnimatePresence>
-      
+
       {isLoaded && (
         <div className="min-h-screen selection:bg-cyan-500 selection:text-white">
           <Navbar lang={lang} setLang={setLang} />
