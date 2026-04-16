@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { Canvas, useFrame } from "@react-three/fiber";
+import { Canvas, useFrame, useLoader } from "@react-three/fiber";
 import { Float, OrbitControls, PerspectiveCamera } from "@react-three/drei";
 import * as THREE from "three";
 import { Language } from "../types";
@@ -16,6 +16,7 @@ interface VRArea {
   summary: Record<Language, string>;
   details: Record<Language, string>;
   mediaHint: Record<Language, string>;
+  imageUrl?: string;
   stats: {
     label: Record<Language, string>;
     value: string;
@@ -28,6 +29,7 @@ const vrAreas: VRArea[] = [
     color: "#22d3ee",
     position: [-4.5, 1.8, -2],
     scale: [2.2, 2.4, 1.4],
+    imageUrl: "/assests/050A7790.JPG",
     title: {
       uz: "Teleko'rsatuv studiyasi",
       ru: "Телестудия",
@@ -68,6 +70,7 @@ const vrAreas: VRArea[] = [
     color: "#818cf8",
     position: [0, 1.4, -4],
     scale: [2.6, 1.6, 1.2],
+    imageUrl: "/assests/050A7793.JPG",
     title: {
       uz: "Rejissyor pulti",
       ru: "Режиссерский пульт",
@@ -108,6 +111,7 @@ const vrAreas: VRArea[] = [
     color: "#f59e0b",
     position: [4.5, 1.4, -1.8],
     scale: [1.8, 1.8, 1.8],
+    imageUrl: "/assests/IMG_3288.jpg",
     title: {
       uz: "Ovoz yozish bo'limi",
       ru: "Аудиозапись",
@@ -148,6 +152,7 @@ const vrAreas: VRArea[] = [
     color: "#10b981",
     position: [0, 1.2, 2.8],
     scale: [3.4, 1.2, 0.6],
+    imageUrl: "/assests/IMG_3327.jpg",
     title: {
       uz: "Yangiliklar desk zonasi",
       ru: "Новостной desk",
@@ -245,6 +250,106 @@ const uiText = {
   },
 } as const;
 
+// 3D Image Frame Component
+function ImageFrame3D({
+  texture,
+  position,
+  scale,
+  color,
+  active,
+}: {
+  texture: THREE.Texture | null;
+  position: [number, number, number];
+  scale: [number, number, number];
+  color: string;
+  active: boolean;
+}) {
+  const frameRef = React.useRef<THREE.Group>(null);
+  const imageRef = React.useRef<THREE.Mesh>(null);
+
+  useFrame((state) => {
+    if (!frameRef.current) return;
+
+    // Floating animation
+    frameRef.current.position.y += Math.sin(state.clock.elapsedTime * 0.8) * 0.002;
+
+    // Rotation based on active state
+    if (active) {
+      frameRef.current.rotation.z += 0.01;
+      frameRef.current.rotation.x += 0.005;
+    } else {
+      frameRef.current.rotation.y += 0.003;
+    }
+
+    // Scale pulse when active
+    const pulse = active
+      ? 1 + Math.sin(state.clock.elapsedTime * 2.2) * 0.08
+      : 1;
+    frameRef.current.scale.setScalar(pulse);
+
+    // Image brightness based on active state
+    if (imageRef.current) {
+      const material = imageRef.current.material as THREE.MeshStandardMaterial;
+      material.emissiveIntensity = active ? 0.5 : 0.15;
+    }
+  });
+
+  return (
+    <group ref={frameRef} position={position}>
+      {/* Frame border - 3D effect */}
+      <mesh position={[0, 0, -0.08]}>
+        <boxGeometry args={[scale[0] * 1.05, scale[1] * 1.05, 0.15]} />
+        <meshStandardMaterial
+          color={color}
+          emissive={color}
+          emissiveIntensity={active ? 0.3 : 0.1}
+          metalness={0.6}
+          roughness={0.2}
+        />
+      </mesh>
+
+      {/* Inner shadow/depth */}
+      <mesh position={[0, 0, -0.06]}>
+        <boxGeometry args={[scale[0] * 1.02, scale[1] * 1.02, 0.08]} />
+        <meshStandardMaterial
+          color="#000000"
+          metalness={0.4}
+          roughness={0.6}
+        />
+      </mesh>
+
+      {/* Main image */}
+      {texture && (
+        <mesh ref={imageRef} position={[0, 0, 0]}>
+          <planeGeometry args={[scale[0], scale[1]]} />
+          <meshStandardMaterial
+            map={texture}
+            emissive="#ffffff"
+            emissiveIntensity={0.15}
+            metalness={0.1}
+            roughness={0.2}
+            toneMapped={true}
+          />
+        </mesh>
+      )}
+
+      {/* Glass reflection layer */}
+      <mesh position={[0, 0, 0.02]}>
+        <planeGeometry args={[scale[0], scale[1]]} />
+        <meshStandardMaterial
+          color="#ffffff"
+          emissive="#88ccff"
+          emissiveIntensity={active ? 0.08 : 0.02}
+          metalness={0.8}
+          roughness={0.3}
+          transparent
+          opacity={0.15}
+        />
+      </mesh>
+    </group>
+  );
+}
+
 function VRZoneMesh({
   area,
   active,
@@ -254,42 +359,116 @@ function VRZoneMesh({
   active: boolean;
   onSelect: (area: VRArea) => void;
 }) {
-  const meshRef = React.useRef<THREE.Mesh>(null);
+  const boxMeshRef = React.useRef<THREE.Mesh>(null);
+  const imageFrameRef = React.useRef<THREE.Group>(null);
+  const texture = area.imageUrl
+    ? useLoader(THREE.TextureLoader, area.imageUrl)
+    : null;
 
   useFrame((state) => {
-    if (!meshRef.current) return;
-    const pulse = active ? 1 + Math.sin(state.clock.elapsedTime * 2.2) * 0.06 : 1;
-    meshRef.current.scale.set(
+    if (!boxMeshRef.current) return;
+    const pulse = active
+      ? 1 + Math.sin(state.clock.elapsedTime * 2.2) * 0.06
+      : 1;
+    boxMeshRef.current.scale.set(
       area.scale[0] * pulse,
       area.scale[1] * pulse,
       area.scale[2] * pulse,
     );
-    meshRef.current.rotation.y += active ? 0.006 : 0.0025;
+    boxMeshRef.current.rotation.y += active ? 0.006 : 0.0025;
+
+    // Tilt image frame when interacting
+    if (imageFrameRef.current) {
+      imageFrameRef.current.position.z = area.position[2] + area.scale[2] / 2 + (active ? 0.3 : 0.1);
+    }
   });
 
+  const handlePointerOver = () => {
+    document.body.style.cursor = "pointer";
+  };
+
+  const handlePointerOut = () => {
+    document.body.style.cursor = "default";
+  };
+
   return (
-    <Float speed={active ? 2 : 1.2} floatIntensity={active ? 0.8 : 0.35}>
+    <Float speed={active ? 2.5 : 1.2} floatIntensity={active ? 1 : 0.35}>
+      {/* Background colored box */}
       <mesh
-        ref={meshRef}
+        ref={boxMeshRef}
         position={area.position}
         onClick={() => onSelect(area)}
-        onPointerOver={() => {
-          document.body.style.cursor = "pointer";
-        }}
-        onPointerOut={() => {
-          document.body.style.cursor = "default";
-        }}
+        onPointerOver={handlePointerOver}
+        onPointerOut={handlePointerOut}
+        castShadow
+        receiveShadow
       >
         <boxGeometry args={area.scale} />
         <meshStandardMaterial
           color={area.color}
           emissive={area.color}
-          emissiveIntensity={active ? 0.7 : 0.25}
-          metalness={0.45}
-          roughness={0.3}
+          emissiveIntensity={active ? 0.4 : 0.15}
+          metalness={0.3}
+          roughness={0.4}
         />
       </mesh>
+
+      {/* Enhanced 3D Image Frame */}
+      {texture && (
+        <group
+          ref={imageFrameRef}
+          onClick={() => onSelect(area)}
+          onPointerOver={handlePointerOver}
+          onPointerOut={handlePointerOut}
+        >
+          <ImageFrame3D
+            texture={texture}
+            position={[area.position[0], area.position[1], area.position[2] + area.scale[2] / 2 + 0.1]}
+            scale={area.scale}
+            color={area.color}
+            active={active}
+          />
+        </group>
+      )}
     </Float>
+  );
+}
+
+// Glow Effect Component - Creates halo around images
+function GlowEffect({
+  position,
+  color,
+  active,
+}: {
+  position: [number, number, number];
+  color: string;
+  active: boolean;
+}) {
+  const glowRef = React.useRef<THREE.Mesh>(null);
+
+  useFrame((state) => {
+    if (!glowRef.current) return;
+
+    // Pulsing effect
+    const scale = active
+      ? 1.5 + Math.sin(state.clock.elapsedTime * 2) * 0.3
+      : 1 + Math.sin(state.clock.elapsedTime) * 0.1;
+    glowRef.current.scale.setScalar(scale);
+
+    // Rotation
+    glowRef.current.rotation.z += 0.001;
+  });
+
+  return (
+    <mesh ref={glowRef} position={position}>
+      <octahedronGeometry args={[1.2, 1]} />
+      <meshBasicMaterial
+        color={color}
+        wireframe
+        transparent
+        opacity={active ? 0.3 : 0.05}
+      />
+    </mesh>
   );
 }
 
@@ -305,52 +484,134 @@ function VRLabScene({
     [selectedArea.color],
   );
 
+  // Dynamic lights that follow selected area
+  const dynamicLightPos = useMemo(() => {
+    return [
+      [selectedArea.position[0] + 5, selectedArea.position[1] + 3, selectedArea.position[2] + 5],
+      [selectedArea.position[0] - 5, selectedArea.position[1] + 3, selectedArea.position[2] - 5],
+      [selectedArea.position[0], selectedArea.position[1] - 2, selectedArea.position[2]],
+    ];
+  }, [selectedArea]);
+
   return (
     <>
       <PerspectiveCamera makeDefault position={[0, 7, 13]} fov={42} />
       <color attach="background" args={["#04070d"]} />
       <fog attach="fog" args={["#04070d", 16, 28]} />
 
-      <ambientLight intensity={0.7} />
-      <pointLight position={[0, 8, 0]} intensity={14} color={selectedArea.color} />
-      <pointLight position={[-8, 4, 6]} intensity={8} color="#38bdf8" />
-      <pointLight position={[8, 3, -6]} intensity={7} color="#f97316" />
+      {/* Enhanced Ambient Lighting */}
+      <ambientLight intensity={0.8} />
 
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.05, 0]} receiveShadow>
+      {/* Main dynamic light following selected area */}
+      <pointLight
+        position={[selectedArea.position[0], selectedArea.position[1] + 5, selectedArea.position[2] + 3]}
+        intensity={18}
+        color={selectedArea.color}
+        distance={30}
+        decay={2}
+      />
+
+      {/* Supporting lights */}
+      <pointLight
+        position={dynamicLightPos[0] as [number, number, number]}
+        intensity={10}
+        color="#38bdf8"
+        distance={20}
+        decay={2}
+      />
+      <pointLight
+        position={dynamicLightPos[1] as [number, number, number]}
+        intensity={8}
+        color="#f97316"
+        distance={18}
+        decay={2}
+      />
+      <pointLight
+        position={dynamicLightPos[2] as [number, number, number]}
+        intensity={6}
+        color="#a855f7"
+        distance={15}
+        decay={2}
+      />
+
+      {/* Scene Floor */}
+      <mesh
+        rotation={[-Math.PI / 2, 0, 0]}
+        position={[0, -0.05, 0]}
+        receiveShadow
+      >
         <planeGeometry args={[24, 24]} />
-        <meshStandardMaterial color="#0b1220" roughness={0.95} metalness={0.1} />
+        <meshStandardMaterial
+          color="#0b1220"
+          roughness={0.95}
+          metalness={0.1}
+        />
       </mesh>
 
-      <gridHelper args={[24, 24, gridColor, "#111827"]} position={[0, 0.01, 0]} />
+      <gridHelper
+        args={[24, 24, gridColor, "#111827"]}
+        position={[0, 0.01, 0]}
+      />
 
       <mesh position={[0, 3.5, -8]}>
         <boxGeometry args={[18, 7, 0.4]} />
-        <meshStandardMaterial color="#0f172a" emissive="#111827" emissiveIntensity={0.35} />
+        <meshStandardMaterial
+          color="#0f172a"
+          emissive="#111827"
+          emissiveIntensity={0.35}
+        />
       </mesh>
       <mesh position={[-9, 3.5, 0]}>
         <boxGeometry args={[0.4, 7, 18]} />
-        <meshStandardMaterial color="#0f172a" emissive="#0f172a" emissiveIntensity={0.25} />
+        <meshStandardMaterial
+          color="#0f172a"
+          emissive="#0f172a"
+          emissiveIntensity={0.25}
+        />
       </mesh>
       <mesh position={[9, 3.5, 0]}>
         <boxGeometry args={[0.4, 7, 18]} />
-        <meshStandardMaterial color="#0f172a" emissive="#0f172a" emissiveIntensity={0.25} />
+        <meshStandardMaterial
+          color="#0f172a"
+          emissive="#0f172a"
+          emissiveIntensity={0.25}
+        />
       </mesh>
 
       <mesh position={[0, 0.6, 5.2]}>
         <boxGeometry args={[5.2, 1.2, 0.7]} />
-        <meshStandardMaterial color="#111827" emissive="#0f172a" emissiveIntensity={0.3} />
+        <meshStandardMaterial
+          color="#111827"
+          emissive="#0f172a"
+          emissiveIntensity={0.3}
+        />
       </mesh>
       <mesh position={[0, 2.2, -6.8]}>
         <boxGeometry args={[4.4, 2, 0.3]} />
-        <meshStandardMaterial color="#111827" emissive="#22d3ee" emissiveIntensity={0.15} />
+        <meshStandardMaterial
+          color="#111827"
+          emissive="#22d3ee"
+          emissiveIntensity={0.15}
+        />
       </mesh>
 
+      {/* Render all VR zones */}
       {vrAreas.map((area) => (
         <VRZoneMesh
           key={area.id}
           area={area}
           active={area.id === selectedArea.id}
           onSelect={onSelect}
+        />
+      ))}
+
+      {/* Glow effects around zones */}
+      {vrAreas.map((area) => (
+        <GlowEffect
+          key={`glow-${area.id}`}
+          position={area.position as [number, number, number]}
+          color={area.color}
+          active={area.id === selectedArea.id}
         />
       ))}
 
@@ -373,7 +634,12 @@ interface VRModuleProps {
 
 export default function VRModule({ lang, onBack }: VRModuleProps) {
   const [selectedArea, setSelectedArea] = useState<VRArea>(vrAreas[0]);
+  const [hoveredArea, setHoveredArea] = useState<AreaId | null>(null);
   const text = uiText[lang];
+
+  const handleAreaSelect = (area: VRArea) => {
+    setSelectedArea(area);
+  };
 
   return (
     <div className="relative min-h-screen w-full overflow-hidden bg-[#04070d] text-white">
@@ -386,8 +652,12 @@ export default function VRModule({ lang, onBack }: VRModuleProps) {
               <span className="h-2 w-2 rounded-full bg-cyan-400" />
               {text.sceneReady}
             </p>
-            <h2 className="text-3xl font-semibold tracking-tight">{text.title}</h2>
-            <p className="mt-3 text-sm leading-6 text-white/60">{text.subtitle}</p>
+            <h2 className="text-3xl font-semibold tracking-tight">
+              {text.title}
+            </h2>
+            <p className="mt-3 text-sm leading-6 text-white/60">
+              {text.subtitle}
+            </p>
           </div>
 
           <div>
@@ -397,21 +667,37 @@ export default function VRModule({ lang, onBack }: VRModuleProps) {
             <div className="space-y-3">
               {vrAreas.map((area) => {
                 const active = area.id === selectedArea.id;
+                const hovered = area.id === hoveredArea;
 
                 return (
-                  <button
+                  <motion.button
                     key={area.id}
-                    onClick={() => setSelectedArea(area)}
+                    onClick={() => handleAreaSelect(area)}
+                    onHoverStart={() => setHoveredArea(area.id)}
+                    onHoverEnd={() => setHoveredArea(null)}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
                     className={`w-full rounded-2xl border px-4 py-4 text-left transition-all ${
                       active
                         ? "border-cyan-400/50 bg-cyan-500/10 shadow-[0_0_40px_rgba(34,211,238,0.08)]"
-                        : "border-white/10 bg-white/[0.03] hover:border-white/25 hover:bg-white/[0.05]"
+                        : hovered
+                          ? "border-white/30 bg-white/[0.08]"
+                          : "border-white/10 bg-white/[0.03] hover:border-white/25 hover:bg-white/[0.05]"
                     }`}
                   >
-                    <div className="mb-3 h-2 w-14 rounded-full" style={{ backgroundColor: area.color }} />
+                    <div
+                      className="mb-3 h-2 w-14 rounded-full transition-all"
+                      style={{
+                        backgroundColor: area.color,
+                        width: hovered || active ? 56 : 56,
+                        boxShadow: hovered || active ? `0 0 12px ${area.color}` : "none",
+                      }}
+                    />
                     <p className="text-base font-medium">{area.title[lang]}</p>
-                    <p className="mt-2 text-sm leading-5 text-white/50">{area.summary[lang]}</p>
-                  </button>
+                    <p className="mt-2 text-sm leading-5 text-white/50">
+                      {area.summary[lang]}
+                    </p>
+                  </motion.button>
                 );
               })}
             </div>
@@ -420,12 +706,19 @@ export default function VRModule({ lang, onBack }: VRModuleProps) {
 
         <div className="relative min-h-[48vh] xl:min-h-screen">
           <Canvas dpr={[1, 2]}>
-            <VRLabScene selectedArea={selectedArea} onSelect={setSelectedArea} />
+            <VRLabScene
+              selectedArea={selectedArea}
+              onSelect={handleAreaSelect}
+            />
           </Canvas>
 
           <div className="pointer-events-none absolute left-6 top-6 rounded-2xl border border-white/10 bg-black/45 px-4 py-3 backdrop-blur-md">
-            <p className="text-xs uppercase tracking-[0.32em] text-cyan-300">{text.controls}</p>
-            <p className="mt-2 max-w-xs text-sm leading-5 text-white/60">{text.controlsBody}</p>
+            <p className="text-xs uppercase tracking-[0.32em] text-cyan-300">
+              {text.controls}
+            </p>
+            <p className="mt-2 max-w-xs text-sm leading-5 text-white/60">
+              {text.controlsBody}
+            </p>
           </div>
 
           <button
@@ -442,39 +735,92 @@ export default function VRModule({ lang, onBack }: VRModuleProps) {
             initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.28 }}
+            className="max-h-[calc(100vh-80px)] overflow-y-auto"
           >
-            <p className="text-xs uppercase tracking-[0.35em] text-white/35">{text.sceneInfo}</p>
-            <h3 className="mt-3 text-2xl font-semibold">{selectedArea.title[lang]}</h3>
-            <p className="mt-3 text-sm leading-6 text-white/65">{selectedArea.details[lang]}</p>
+            <p className="text-xs uppercase tracking-[0.35em] text-white/35">
+              {text.sceneInfo}
+            </p>
+            <h3 className="mt-3 text-2xl font-semibold">
+              {selectedArea.title[lang]}
+            </h3>
+            <p className="mt-3 text-sm leading-6 text-white/65">
+              {selectedArea.details[lang]}
+            </p>
+
+            {/* Image Preview */}
+            {selectedArea.imageUrl && (
+              <motion.div
+                className="mt-6 overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03]"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1, duration: 0.3 }}
+              >
+                <div className="relative aspect-video w-full overflow-hidden bg-black/50">
+                  <img
+                    src={selectedArea.imageUrl}
+                    alt={selectedArea.title[lang]}
+                    className="h-full w-full object-cover"
+                  />
+                </div>
+                <p className="px-4 py-3 text-xs text-white/50">
+                  {selectedArea.title[lang]}
+                </p>
+              </motion.div>
+            )}
 
             <div className="mt-6 rounded-3xl border border-white/10 bg-white/[0.03] p-5">
-              <p className="text-xs uppercase tracking-[0.32em] text-cyan-300">{text.replaceLabel}</p>
-              <p className="mt-3 text-sm leading-6 text-white/60">{selectedArea.mediaHint[lang]}</p>
+              <p className="text-xs uppercase tracking-[0.32em] text-cyan-300">
+                {text.replaceLabel}
+              </p>
+              <p className="mt-3 text-sm leading-6 text-white/60">
+                {selectedArea.mediaHint[lang]}
+              </p>
             </div>
 
             <div className="mt-6 grid grid-cols-3 gap-3">
-              {selectedArea.stats.map((item) => (
-                <div key={item.label[lang]} className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+              {selectedArea.stats.map((item, idx) => (
+                <motion.div
+                  key={item.label[lang]}
+                  className="rounded-2xl border border-white/10 bg-white/[0.03] p-4"
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.15 + idx * 0.05, duration: 0.3 }}
+                >
                   <p className="text-[11px] uppercase tracking-[0.28em] text-white/35">
                     {item.label[lang]}
                   </p>
-                  <p className="mt-2 text-sm font-medium text-white/85">{item.value}</p>
-                </div>
+                  <p className="mt-2 text-sm font-medium text-white/85">
+                    {item.value}
+                  </p>
+                </motion.div>
               ))}
             </div>
 
-            <div className="mt-6 rounded-3xl border border-white/10 bg-gradient-to-br from-cyan-500/10 to-indigo-500/10 p-5">
-              <p className="text-xs uppercase tracking-[0.32em] text-cyan-300">{text.strategy}</p>
-              <p className="mt-3 text-sm leading-6 text-white/65">{text.strategyBody}</p>
-            </div>
+            <motion.div
+              className="mt-6 rounded-3xl border border-white/10 bg-gradient-to-br from-cyan-500/10 to-indigo-500/10 p-5"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2, duration: 0.3 }}
+            >
+              <p className="text-xs uppercase tracking-[0.32em] text-cyan-300">
+                {text.strategy}
+              </p>
+              <p className="mt-3 text-sm leading-6 text-white/65">
+                {text.strategyBody}
+              </p>
+            </motion.div>
 
             <div className="mt-6 flex items-center justify-between rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white/55">
               <span>{text.objectCount}</span>
-              <span className="font-medium text-cyan-300">{vrAreas.length}</span>
+              <span className="font-medium text-cyan-300">
+                {vrAreas.length}
+              </span>
             </div>
             <div className="mt-3 flex items-center justify-between rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white/55">
               <span>{text.mode}</span>
-              <span className="font-medium text-cyan-300">{text.modeValue}</span>
+              <span className="font-medium text-cyan-300">
+                {text.modeValue}
+              </span>
             </div>
           </motion.div>
         </aside>

@@ -4,7 +4,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { NAV_ITEMS, TRANSLATIONS } from "./constants";
 import { Language } from "./types";
 import logoIcon from "./assests/logo.jpg";
-
 import Home from "./pages/Home";
 import About from "./pages/About";
 import Programs from "./pages/Programs";

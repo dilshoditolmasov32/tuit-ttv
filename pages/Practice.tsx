@@ -4,6 +4,17 @@ import VRModule from "../components/VRModule";
 import ARModule from "../components/ARModule";
 import { Language } from "../types";
 
+// Assetslardan rasmlarni import qilish
+import image1 from "../assests/050A7790.JPG";
+import image2 from "../assests/050A7793.JPG";
+import image3 from "../assests/IMG_3288.jpg";
+import image4 from "../assests/IMG_3297.jpg";
+import image5 from "../assests/IMG_3312.jpg";
+import image6 from "../assests/IMG_3320.jpg";
+import image7 from "../assests/IMG_3325.jpg";
+import image8 from "../assests/IMG_3327.jpg";
+import image9 from "../assests/media-markaz-1.jpg";
+
 type Section = "menu" | "vr" | "ar" | "tour";
 
 const TourModule = ({ onBack }: { onBack: () => void }) => {
@@ -14,9 +25,9 @@ const TourModule = ({ onBack }: { onBack: () => void }) => {
       desc: "Asosiy studiya - 240 m²",
       color: "#0a1a12",
       icon: "🎬",
-      mediaType: "Panorama rasm",
-      fileHint: "/tour/studio-360.jpg",
-      note: "Kamera, dekor va yoritish zonasi uchun asosiy panorama.",
+      mediaType: "Haqiqiy studiya rasmi",
+      image: image1,
+      note: "Kamera, dekor va yoritish zonasi uchun asosiy studiya rasmi.",
       points: ["360 korinish", "Studiya markazi", "Kamera nuqtasi"],
     },
     {
@@ -25,8 +36,8 @@ const TourModule = ({ onBack }: { onBack: () => void }) => {
       desc: "Post-production xonasi - 80 m²",
       color: "#0a0a1a",
       icon: "💻",
-      mediaType: "Statik preview",
-      fileHint: "/tour/lab-preview.jpg",
+      mediaType: "Lab rasmi",
+      image: image2,
       note: "Montaj kompyuterlari va post-production ish stansiyalari.",
       points: ["Edit stol", "Monitorlar", "Render zonasi"],
     },
@@ -36,8 +47,8 @@ const TourModule = ({ onBack }: { onBack: () => void }) => {
       desc: "Dublyaj va recording - 60 m²",
       color: "#1a0a1a",
       icon: "🎙️",
-      mediaType: "Video placeholder",
-      fileHint: "/tour/sound-room.mp4",
+      mediaType: "Audio bo'limi rasmi",
+      image: image3,
       note: "Ovoz yozish, mikrofon va akustik muhit namoyishi.",
       points: ["Mikrofon", "Audio booth", "Voice over"],
     },
@@ -47,10 +58,65 @@ const TourModule = ({ onBack }: { onBack: () => void }) => {
       desc: "Live broadcast - 120 m²",
       color: "#1a1400",
       icon: "📡",
-      mediaType: "Panorama video",
-      fileHint: "/tour/broadcast-360.mp4",
+      mediaType: "Efir xonasi rasmi",
+      image: image4,
       note: "Jonli efirni boshqarish va monitoring uchun tayyor nuqta.",
       points: ["Switcher", "Signal control", "Live desk"],
+    },
+    {
+      id: 5,
+      name: "Kamera laboratoriyasi",
+      desc: "Kamera vositasi va texnologiyasi - 50 m²",
+      color: "#0a1a1a",
+      icon: "📷",
+      mediaType: "Kamera xonasi rasmi",
+      image: image5,
+      note: "Professional kamera vositalari, optika va video texnologiyalarining namoyishi.",
+      points: ["4K kamera", "Optika", "Steadicam"],
+    },
+    {
+      id: 6,
+      name: "Yorug'lik tehnikasi",
+      desc: "Yoritish va lighting dizayn - 45 m²",
+      color: "#1a1213",
+      icon: "💡",
+      mediaType: "Yoritish xonasi rasmi",
+      image: image6,
+      note: "Professional yoritish vositalari, LED panellari va yangi texnologiyalar.",
+      points: ["LED sistem", "Softbox", "Reflector"],
+    },
+    {
+      id: 7,
+      name: "Kosmetic va to'plam",
+      desc: "Rasm va kosmetik tayyorlash zonasi - 35 m²",
+      color: "#1a0a12",
+      icon: "✨",
+      mediaType: "Kosmetic xonasi rasmi",
+      image: image7,
+      note: "Shundayki, TV oqimida chiqadigan shunosliklarning to'plam va kosmetik tayyorlash.",
+      points: ["Oyna", "Kosmetik", "Dress room"],
+    },
+    {
+      id: 8,
+      name: "Sahnadorlik",
+      desc: "Dekor va sahnadorlik dizayn - 70 m²",
+      color: "#0a1208",
+      icon: "🎨",
+      mediaType: "Dekor xonasi rasmi",
+      image: image8,
+      note: "Sahnadorlik tuzatish, fon tayyorlash va vizual effektlar yaratish.",
+      points: ["Dekor", "Set design", "Props storage"],
+    },
+    {
+      id: 9,
+      name: "Media markaz",
+      desc: "Markaziy media va arxiv - 100 m²",
+      color: "#0f0a1a",
+      icon: "📦",
+      mediaType: "Media markaz rasmi",
+      image: image9,
+      note: "Barcha media fayllarining saqlanishi, arxivi va boshqaruvining markaziy joyi.",
+      points: ["Serverni", "Backup sistem", "Archive storage"],
     },
   ];
 
@@ -90,7 +156,7 @@ const TourModule = ({ onBack }: { onBack: () => void }) => {
         </div>
       </div>
 
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-1 overflow-hidden h-full">
         <div className="w-72 border-r border-white/10 p-4 flex flex-col gap-2 overflow-y-auto">
           <p className="text-xs text-white/40 uppercase tracking-widest mb-2 px-2">
             Xonalar
@@ -115,7 +181,7 @@ const TourModule = ({ onBack }: { onBack: () => void }) => {
           ))}
         </div>
 
-        <div className="flex-1 relative overflow-hidden">
+        <div className="flex-1 relative overflow-hidden flex items-center justify-center">
           <AnimatePresence mode="wait">
             <motion.div
               key={activeRoom.id}
@@ -123,7 +189,7 @@ const TourModule = ({ onBack }: { onBack: () => void }) => {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.4 }}
-              className="w-full h-full relative"
+              className="w-full h-full absolute inset-0"
               style={{
                 background: `radial-gradient(ellipse at center, ${activeRoom.color} 0%, #050505 100%)`,
                 cursor: isDragging ? "grabbing" : "grab",
@@ -140,24 +206,23 @@ const TourModule = ({ onBack }: { onBack: () => void }) => {
                 >
                   <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1.2fr)_320px] gap-8 items-center">
                     <div className="rounded-[28px] border border-white/10 bg-black/25 backdrop-blur-md overflow-hidden shadow-[0_20px_80px_rgba(0,0,0,0.35)]">
-                      <div className="aspect-[16/9] relative bg-gradient-to-br from-white/10 to-white/0 flex items-center justify-center">
-                        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.12),transparent_55%)]" />
-                        <div className="absolute top-4 left-4 px-3 py-1 rounded-full border border-white/15 text-[11px] text-cyan-300 bg-black/30">
+                      <div className="aspect-[16/9] relative bg-gradient-to-br from-white/10 to-white/0 flex items-center justify-center overflow-hidden">
+                        <img
+                          src={activeRoom.image}
+                          alt={activeRoom.name}
+                          className="w-full h-full object-cover"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+                        <div className="absolute top-4 left-4 px-3 py-1 rounded-full border border-white/15 text-[11px] text-cyan-300 bg-black/50">
                           {activeRoom.mediaType}
                         </div>
-                        <div className="text-center relative z-10 px-6">
-                          <div className="text-7xl mb-5">{activeRoom.icon}</div>
-                          <p className="text-2xl font-light text-white/85">
+                        <div className="absolute bottom-4 left-4 right-4 z-10">
+                          <p className="text-xl font-semibold text-white">
                             {activeRoom.name}
                           </p>
-                          <p className="text-sm text-white/45 mt-2">
+                          <p className="text-sm text-white/70 mt-1">
                             {activeRoom.desc}
                           </p>
-                          <div className="mt-5 inline-flex items-center gap-2 rounded-full border border-white/15 px-4 py-2 text-xs text-white/50">
-                            <span>Static preview</span>
-                            <span>•</span>
-                            <span>Keyin media bilan almashtiriladi</span>
-                          </div>
                         </div>
                       </div>
 
@@ -185,19 +250,18 @@ const TourModule = ({ onBack }: { onBack: () => void }) => {
                       </p>
                       <div className="mt-5 rounded-2xl border border-white/10 bg-white/[0.03] p-4">
                         <p className="text-[11px] uppercase tracking-[0.28em] text-white/35">
-                          Fayl yo'li
+                          Media turi
                         </p>
-                        <p className="mt-3 text-sm text-amber-300 break-all">
-                          {activeRoom.fileHint}
+                        <p className="mt-3 text-sm text-cyan-300">
+                          {activeRoom.mediaType}
                         </p>
                       </div>
                       <div className="mt-4 rounded-2xl border border-white/10 bg-white/[0.03] p-4">
                         <p className="text-[11px] uppercase tracking-[0.28em] text-white/35">
-                          Eslatma
+                          Hajmi
                         </p>
-                        <p className="mt-3 text-sm leading-6 text-white/55">
-                          Hozirgi preview blok o'rniga keyin 360 panorama rasm,
-                          video yoki viewer joylashtirishingiz mumkin.
+                        <p className="mt-3 text-sm text-white/60">
+                          {activeRoom.desc}
                         </p>
                       </div>
                     </div>
@@ -223,24 +287,21 @@ const TourModule = ({ onBack }: { onBack: () => void }) => {
               </div>
 
               <div className="absolute bottom-4 left-4 right-4">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3">
                   {rooms.map((room) => (
                     <button
                       key={room.id}
                       onClick={() => setActiveRoom(room)}
-                      className={`rounded-2xl border px-4 py-3 text-left backdrop-blur-sm transition-all ${
+                      className={`rounded-2xl border px-3 py-2 text-left backdrop-blur-sm transition-all text-xs ${
                         activeRoom.id === room.id
                           ? "border-cyan-400/40 bg-cyan-500/10"
                           : "border-white/10 bg-black/35 hover:bg-white/10"
                       }`}
                     >
-                      <div className="flex items-center gap-3">
-                        <span className="text-xl">{room.icon}</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg">{room.icon}</span>
                         <div>
-                          <p className="text-sm text-white/80">{room.name}</p>
-                          <p className="text-[10px] text-white/40 mt-1">
-                            {room.mediaType}
-                          </p>
+                          <p className="text-xs text-white/80">{room.name}</p>
                         </div>
                       </div>
                     </button>
