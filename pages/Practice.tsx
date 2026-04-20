@@ -1,320 +1,10 @@
 import { useState, useRef, useCallback, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import VRModule from "../components/VRModule";
 import ARModule from "../components/ARModule";
 import { Language } from "../types";
 
-// Assetslardan rasmlarni import qilish
-import image1 from "../assests/050A7790.JPG";
-import image2 from "../assests/050A7793.JPG";
-import image3 from "../assests/IMG_3288.jpg";
-import image4 from "../assests/IMG_3297.jpg";
-import image5 from "../assests/IMG_3312.jpg";
-import image6 from "../assests/IMG_3320.jpg";
-import image7 from "../assests/IMG_3325.jpg";
-import image8 from "../assests/IMG_3327.jpg";
-import image9 from "../assests/media-markaz-1.jpg";
-
-type Section = "menu" | "vr" | "ar" | "tour";
-
-const TourModule = ({ onBack }: { onBack: () => void }) => {
-  const rooms = [
-    {
-      id: 1,
-      name: "Yozuv studiyasi",
-      desc: "Asosiy studiya - 240 m²",
-      color: "#0a1a12",
-      icon: "🎬",
-      mediaType: "Haqiqiy studiya rasmi",
-      image: image1,
-      note: "Kamera, dekor va yoritish zonasi uchun asosiy studiya rasmi.",
-      points: ["360 korinish", "Studiya markazi", "Kamera nuqtasi"],
-    },
-    {
-      id: 2,
-      name: "Multimedia laboratoriya",
-      desc: "Post-production xonasi - 80 m²",
-      color: "#0a0a1a",
-      icon: "💻",
-      mediaType: "Lab rasmi",
-      image: image2,
-      note: "Montaj kompyuterlari va post-production ish stansiyalari.",
-      points: ["Edit stol", "Monitorlar", "Render zonasi"],
-    },
-    {
-      id: 3,
-      name: "Ovoz studiyasi",
-      desc: "Dublyaj va recording - 60 m²",
-      color: "#1a0a1a",
-      icon: "🎙️",
-      mediaType: "Audio bo'limi rasmi",
-      image: image3,
-      note: "Ovoz yozish, mikrofon va akustik muhit namoyishi.",
-      points: ["Mikrofon", "Audio booth", "Voice over"],
-    },
-    {
-      id: 4,
-      name: "Efir xonasi",
-      desc: "Live broadcast - 120 m²",
-      color: "#1a1400",
-      icon: "📡",
-      mediaType: "Efir xonasi rasmi",
-      image: image4,
-      note: "Jonli efirni boshqarish va monitoring uchun tayyor nuqta.",
-      points: ["Switcher", "Signal control", "Live desk"],
-    },
-    {
-      id: 5,
-      name: "Kamera laboratoriyasi",
-      desc: "Kamera vositasi va texnologiyasi - 50 m²",
-      color: "#0a1a1a",
-      icon: "📷",
-      mediaType: "Kamera xonasi rasmi",
-      image: image5,
-      note: "Professional kamera vositalari, optika va video texnologiyalarining namoyishi.",
-      points: ["4K kamera", "Optika", "Steadicam"],
-    },
-    {
-      id: 6,
-      name: "Yorug'lik tehnikasi",
-      desc: "Yoritish va lighting dizayn - 45 m²",
-      color: "#1a1213",
-      icon: "💡",
-      mediaType: "Yoritish xonasi rasmi",
-      image: image6,
-      note: "Professional yoritish vositalari, LED panellari va yangi texnologiyalar.",
-      points: ["LED sistem", "Softbox", "Reflector"],
-    },
-    {
-      id: 7,
-      name: "Kosmetic va to'plam",
-      desc: "Rasm va kosmetik tayyorlash zonasi - 35 m²",
-      color: "#1a0a12",
-      icon: "✨",
-      mediaType: "Kosmetic xonasi rasmi",
-      image: image7,
-      note: "Shundayki, TV oqimida chiqadigan shunosliklarning to'plam va kosmetik tayyorlash.",
-      points: ["Oyna", "Kosmetik", "Dress room"],
-    },
-    {
-      id: 8,
-      name: "Sahnadorlik",
-      desc: "Dekor va sahnadorlik dizayn - 70 m²",
-      color: "#0a1208",
-      icon: "🎨",
-      mediaType: "Dekor xonasi rasmi",
-      image: image8,
-      note: "Sahnadorlik tuzatish, fon tayyorlash va vizual effektlar yaratish.",
-      points: ["Dekor", "Set design", "Props storage"],
-    },
-    {
-      id: 9,
-      name: "Media markaz",
-      desc: "Markaziy media va arxiv - 100 m²",
-      color: "#0f0a1a",
-      icon: "📦",
-      mediaType: "Media markaz rasmi",
-      image: image9,
-      note: "Barcha media fayllarining saqlanishi, arxivi va boshqaruvining markaziy joyi.",
-      points: ["Serverni", "Backup sistem", "Archive storage"],
-    },
-  ];
-
-  const [activeRoom, setActiveRoom] = useState(rooms[0]);
-  const [yaw, setYaw] = useState(0);
-  const [isDragging, setIsDragging] = useState(false);
-  const [lastX, setLastX] = useState(0);
-
-  const handleMouseDown = (e: React.MouseEvent) => {
-    setIsDragging(true);
-    setLastX(e.clientX);
-  };
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!isDragging) return;
-    const delta = e.clientX - lastX;
-    setYaw((y) => y + delta * 0.3);
-    setLastX(e.clientX);
-  };
-
-  const handleMouseUp = () => setIsDragging(false);
-
-  return (
-    <div className="min-h-screen bg-[#050505] text-white flex flex-col">
-      <div className="flex items-center justify-between px-8 py-5 border-b border-white/10">
-        <button
-          onClick={onBack}
-          className="flex items-center gap-2 text-cyan-400 hover:text-cyan-300 transition-colors text-sm"
-        >
-          <span>←</span>
-          <span>Orqaga</span>
-        </button>
-        <h1 className="text-lg font-medium text-white/90">360° Virtual Tur</h1>
-        <div className="flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
-          <span className="text-xs text-cyan-400">Static Demo</span>
-        </div>
-      </div>
-
-      <div className="flex flex-1 overflow-hidden h-full">
-        <div className="w-72 border-r border-white/10 p-4 flex flex-col gap-2 overflow-y-auto">
-          <p className="text-xs text-white/40 uppercase tracking-widest mb-2 px-2">
-            Xonalar
-          </p>
-          {rooms.map((room) => (
-            <button
-              key={room.id}
-              onClick={() => setActiveRoom(room)}
-              className={`w-full text-left px-4 py-3 rounded-xl border transition-all ${
-                activeRoom.id === room.id
-                  ? "bg-cyan-500/10 border-cyan-500/40 text-cyan-300"
-                  : "bg-white/5 border-white/10 text-white/60 hover:bg-white/10"
-              }`}
-            >
-              <div className="text-xl mb-1">{room.icon}</div>
-              <div className="text-sm font-medium">{room.name}</div>
-              <div className="text-xs text-white/40 mt-0.5">{room.desc}</div>
-              <div className="text-[10px] text-cyan-400/80 mt-2">
-                {room.mediaType}
-              </div>
-            </button>
-          ))}
-        </div>
-
-        <div className="flex-1 relative overflow-hidden flex items-center justify-center">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={activeRoom.id}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.4 }}
-              className="w-full h-full absolute inset-0"
-              style={{
-                background: `radial-gradient(ellipse at center, ${activeRoom.color} 0%, #050505 100%)`,
-                cursor: isDragging ? "grabbing" : "grab",
-              }}
-              onMouseDown={handleMouseDown}
-              onMouseMove={handleMouseMove}
-              onMouseUp={handleMouseUp}
-              onMouseLeave={handleMouseUp}
-            >
-              <div className="absolute inset-0 flex items-center justify-center select-none">
-                <div
-                  className="transition-transform duration-75 w-full max-w-6xl px-8"
-                  style={{ transform: `rotateY(${yaw * 0.1}deg)` }}
-                >
-                  <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1.2fr)_320px] gap-8 items-center">
-                    <div className="rounded-[28px] border border-white/10 bg-black/25 backdrop-blur-md overflow-hidden shadow-[0_20px_80px_rgba(0,0,0,0.35)]">
-                      <div className="aspect-[16/9] relative bg-gradient-to-br from-white/10 to-white/0 flex items-center justify-center overflow-hidden">
-                        <img
-                          src={activeRoom.image}
-                          alt={activeRoom.name}
-                          className="w-full h-full object-cover"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
-                        <div className="absolute top-4 left-4 px-3 py-1 rounded-full border border-white/15 text-[11px] text-cyan-300 bg-black/50">
-                          {activeRoom.mediaType}
-                        </div>
-                        <div className="absolute bottom-4 left-4 right-4 z-10">
-                          <p className="text-xl font-semibold text-white">
-                            {activeRoom.name}
-                          </p>
-                          <p className="text-sm text-white/70 mt-1">
-                            {activeRoom.desc}
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-3 gap-3 p-4 bg-black/25 border-t border-white/10">
-                        {activeRoom.points.map((point) => (
-                          <div
-                            key={point}
-                            className="rounded-xl border border-white/10 bg-white/[0.03] px-3 py-3 text-center text-xs text-white/55"
-                          >
-                            {point}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div className="rounded-[28px] border border-white/10 bg-black/30 backdrop-blur-md p-5">
-                      <p className="text-xs uppercase tracking-[0.3em] text-cyan-300">
-                        Media ma'lumoti
-                      </p>
-                      <p className="mt-4 text-lg text-white/85">
-                        {activeRoom.name}
-                      </p>
-                      <p className="mt-2 text-sm leading-6 text-white/55">
-                        {activeRoom.note}
-                      </p>
-                      <div className="mt-5 rounded-2xl border border-white/10 bg-white/[0.03] p-4">
-                        <p className="text-[11px] uppercase tracking-[0.28em] text-white/35">
-                          Media turi
-                        </p>
-                        <p className="mt-3 text-sm text-cyan-300">
-                          {activeRoom.mediaType}
-                        </p>
-                      </div>
-                      <div className="mt-4 rounded-2xl border border-white/10 bg-white/[0.03] p-4">
-                        <p className="text-[11px] uppercase tracking-[0.28em] text-white/35">
-                          Hajmi
-                        </p>
-                        <p className="mt-3 text-sm text-white/60">
-                          {activeRoom.desc}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-2 text-xs text-white/30 pointer-events-none">
-                <span>←</span>
-                <span>Sichqoncha bilan aylantiring</span>
-                <span>→</span>
-              </div>
-
-              <div className="absolute top-4 left-4 bg-black/50 backdrop-blur-sm border border-white/10 rounded-xl px-4 py-2">
-                <p className="text-sm font-medium text-white">
-                  {activeRoom.name}
-                </p>
-                <p className="text-xs text-white/40">{activeRoom.desc}</p>
-              </div>
-
-              <div className="absolute top-4 right-4 bg-black/50 backdrop-blur-sm border border-white/10 rounded-xl px-3 py-2 text-xs text-cyan-400">
-                {Math.round(((yaw % 360) + 360) % 360)}°
-              </div>
-
-              <div className="absolute bottom-4 left-4 right-4">
-                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3">
-                  {rooms.map((room) => (
-                    <button
-                      key={room.id}
-                      onClick={() => setActiveRoom(room)}
-                      className={`rounded-2xl border px-3 py-2 text-left backdrop-blur-sm transition-all text-xs ${
-                        activeRoom.id === room.id
-                          ? "border-cyan-400/40 bg-cyan-500/10"
-                          : "border-white/10 bg-black/35 hover:bg-white/10"
-                      }`}
-                    >
-                      <div className="flex items-center gap-2">
-                        <span className="text-lg">{room.icon}</span>
-                        <div>
-                          <p className="text-xs text-white/80">{room.name}</p>
-                        </div>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </motion.div>
-          </AnimatePresence>
-        </div>
-      </div>
-    </div>
-  );
-};
+type Section = "menu" | "vr" | "ar";
 
 interface PracticeProps {
   lang: Language;
@@ -349,7 +39,7 @@ export default function Practice({ lang }: PracticeProps) {
       icon: "🥽",
       title: "VR Laboratoriyasi",
       description:
-        "Interaktiv 3D muhitda yurish va objektlarni tahlil qilish. Klaviatura bilan harakat qiling va tanlash uchun bosing.",
+        "Interaktiv 3D muhitda yurish va objektlarni tahlil qilish. Sichqoncha bilan aylantiring va nuqtalarni bosing.",
       color: "from-purple-500/20 to-transparent",
       border: "border-purple-500/30 hover:border-purple-400/60",
       accent: "text-purple-400",
@@ -366,19 +56,9 @@ export default function Practice({ lang }: PracticeProps) {
       accent: "text-cyan-400",
       badge: "bg-cyan-500/20 text-cyan-300",
     },
-    {
-      id: "tour" as Section,
-      icon: "🎬",
-      title: "360° Tur",
-      description:
-        "Panoramik video va rasmlar uchun tayyor statik preview. Keyin haqiqiy media bilan almashtirasiz.",
-      color: "from-amber-500/20 to-transparent",
-      border: "border-amber-500/30 hover:border-amber-400/60",
-      accent: "text-amber-400",
-      badge: "bg-amber-500/20 text-amber-300",
-    },
   ];
 
+  // When viewing VR or AR - fullscreen mode
   if (activeSection !== "menu") {
     return (
       <div
@@ -391,33 +71,11 @@ export default function Practice({ lang }: PracticeProps) {
           overflow: "hidden",
         }}
       >
+        {/* Fullscreen Toggle Button - Responsive Positioning */}
         <button
           onClick={toggleFullscreen}
           title={isFullscreen ? "Kichraytirish" : "To'liq ekran"}
-          style={{
-            position: "absolute",
-            bottom: "14px",
-            right: "16px",
-            zIndex: 10000,
-            display: "flex",
-            alignItems: "center",
-            gap: "6px",
-            padding: "6px 14px",
-            background: "rgba(0,0,0,0.55)",
-            border: "1px solid rgba(255,255,255,0.15)",
-            borderRadius: "999px",
-            color: "#22d3ee",
-            fontSize: "12px",
-            cursor: "pointer",
-            backdropFilter: "blur(8px)",
-            transition: "background 0.2s",
-          }}
-          onMouseEnter={(e) =>
-            (e.currentTarget.style.background = "rgba(34,211,238,0.15)")
-          }
-          onMouseLeave={(e) =>
-            (e.currentTarget.style.background = "rgba(0,0,0,0.55)")
-          }
+          className="absolute bottom-4 right-4 md:bottom-6 md:right-6 z-10000 flex items-center gap-2 px-3 md:px-4 py-2 md:py-3 rounded-full border border-cyan-500/40 bg-cyan-500/10 text-cyan-300 text-xs md:text-sm font-medium hover:bg-cyan-500/20 transition-all backdrop-blur-md"
         >
           {isFullscreen ? (
             <>
@@ -431,7 +89,7 @@ export default function Practice({ lang }: PracticeProps) {
               >
                 <path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3" />
               </svg>
-              Kichraytirish
+              <span className="hidden sm:inline">Kichraytirish</span>
             </>
           ) : (
             <>
@@ -445,26 +103,47 @@ export default function Practice({ lang }: PracticeProps) {
               >
                 <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" />
               </svg>
-              To'liq ekran
+              <span className="hidden sm:inline">To'liq ekran</span>
             </>
           )}
         </button>
 
+        
+        <button
+          onClick={() => setActiveSection("menu")}
+          className="absolute top-4 right-4 md:top-6 md:right-16 z-10000 flex items-center gap-2 px-3 md:px-4 py-2 md:py-3 rounded-full border border-red-500/40 bg-red-500/10 text-red-300 text-xs md:text-sm font-medium hover:bg-red-500/20 transition-all backdrop-blur-md"
+          title="Orqaga qaytish"
+        >
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+          >
+            <path d="M19 12H5M12 19l-7-7 7-7" />
+          </svg>
+          <span className="hidden sm:inline">Orqaga</span>
+        </button>
+
+        {/* VR Module */}
         {activeSection === "vr" && (
           <VRModule lang={lang} onBack={() => setActiveSection("menu")} />
         )}
+
+        {/* AR Module */}
         {activeSection === "ar" && (
           <ARModule lang={lang} onBack={() => setActiveSection("menu")} />
-        )}
-        {activeSection === "tour" && (
-          <TourModule onBack={() => setActiveSection("menu")} />
         )}
       </div>
     );
   }
 
+  // Menu view - showing VR and AR cards
   return (
     <div className="min-h-screen bg-[#050505] text-white">
+      {/* Background Grid */}
       <div
         className="fixed inset-0 pointer-events-none opacity-[0.03]"
         style={{
@@ -474,15 +153,16 @@ export default function Practice({ lang }: PracticeProps) {
         }}
       />
 
-      <div className="relative z-10 max-w-6xl mx-auto mt-10 px-6 py-20">
+      {/* Content */}
+      <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 py-12 md:py-20">
+        {/* Header Section */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="text-center mb-16"
+          className="text-center mb-12 md:mb-16"
         >
-          
-          <h1 className="text-5xl font-bold mb-4 tracking-tight">
+          <h1 className="text-4xl sm:text-5xl font-bold mb-4 tracking-tight">
             VR/AR{" "}
             <span
               className="text-transparent bg-clip-text"
@@ -493,13 +173,14 @@ export default function Practice({ lang }: PracticeProps) {
               Laboratoriyasi
             </span>
           </h1>
-          <p className="text-white/50 text-lg max-w-xl mx-auto leading-relaxed">
+          <p className="text-white/50 text-base sm:text-lg max-w-2xl mx-auto leading-relaxed px-4">
             Fakultetimizning interaktiv laboratoriyalariga xush kelibsiz.
             Quyidagi texnologiyalardan birini tanlang va o'rganishni boshlang.
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Cards Grid - Responsive Layout */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
           {cards.map((card, i) => (
             <motion.div
               key={card.id}
@@ -509,30 +190,30 @@ export default function Practice({ lang }: PracticeProps) {
             >
               <button
                 onClick={() => setActiveSection(card.id)}
-                className={`w-full text-left p-7 rounded-2xl border bg-white/[0.03] backdrop-blur-sm transition-all duration-300 group relative overflow-hidden ${card.border}`}
+                className={`w-full text-left p-6 sm:p-8 rounded-2xl border bg-white/[0.03] backdrop-blur-sm transition-all duration-300 group relative overflow-hidden h-full ${card.border}`}
               >
                 <div
                   className={`absolute inset-0 bg-gradient-to-br ${card.color} opacity-0 group-hover:opacity-100 transition-opacity duration-300`}
                 />
 
-                <div className="relative z-10">
-                  <div className="text-5xl mb-5">{card.icon}</div>
+                <div className="relative z-10 flex flex-col h-full">
+                  <div className="text-5xl sm:text-6xl mb-4 sm:mb-5">
+                    {card.icon}
+                  </div>
 
                   <span
-                    className={`text-xs px-3 py-1 rounded-full ${card.badge} mb-4 inline-block`}
+                    className={`text-xs px-3 py-1 rounded-full ${card.badge} mb-4 inline-block w-fit`}
                   >
                     {card.id === "vr"
-                      ? "WebXR"
-                      : card.id === "ar"
-                        ? "Camera API"
-                        : "360 Media"}
+                      ? "WebXR Technology"
+                      : "Camera & AR Kit"}
                   </span>
 
-                  <h3 className="text-xl font-semibold text-white mb-3">
+                  <h3 className="text-xl sm:text-2xl font-semibold text-white mb-3">
                     {card.title}
                   </h3>
 
-                  <p className="text-white/50 text-sm leading-relaxed mb-6">
+                  <p className="text-white/50 text-sm leading-relaxed mb-6 flex-grow">
                     {card.description}
                   </p>
 
@@ -548,7 +229,26 @@ export default function Practice({ lang }: PracticeProps) {
           ))}
         </div>
 
-      
+        {/* Features Info - Optional */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.3 }}
+          className="mt-16 md:mt-24 grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6"
+        >
+          <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-6 backdrop-blur-sm text-center">
+            <p className="text-2xl sm:text-3xl font-bold text-cyan-400">3D</p>
+            <p className="text-sm text-white/60 mt-2">Interactive Environments</p>
+          </div>
+          <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-6 backdrop-blur-sm text-center">
+            <p className="text-2xl sm:text-3xl font-bold text-purple-400">360°</p>
+            <p className="text-sm text-white/60 mt-2">Immersive Experience</p>
+          </div>
+          <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-6 backdrop-blur-sm text-center">
+            <p className="text-2xl sm:text-3xl font-bold text-indigo-400">AR</p>
+            <p className="text-sm text-white/60 mt-2">Real World Integration</p>
+          </div>
+        </motion.div>
       </div>
     </div>
   );

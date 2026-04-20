@@ -321,9 +321,13 @@ function ImageFrame3D({
       {/* Main image */}
       {texture && (
         <mesh ref={imageRef} position={[0, 0, 0]}>
-          <planeGeometry args={[scale[0], scale[1]]} />
+          {/* 3D effekt (chuqurlik) berish uchun segmentlarni ko'paytiramiz (128x128) */}
+          <planeGeometry args={[scale[0], scale[1], 128, 128]} />
           <meshStandardMaterial
             map={texture}
+            // Rasmning o'zini chuqurlik xaritasi sifatida ishlatamiz (oq ranglar oldinga chiqadi)
+            displacementMap={texture} 
+            displacementScale={0.15} // Bo'rtib chiqish darajasi (qanchalik kattaligi)
             emissive="#ffffff"
             emissiveIntensity={0.15}
             metalness={0.1}
@@ -354,10 +358,12 @@ function VRZoneMesh({
   area,
   active,
   onSelect,
+  onHover,
 }: {
   area: VRArea;
   active: boolean;
   onSelect: (area: VRArea) => void;
+  onHover: (area: VRArea | null) => void;
 }) {
   const boxMeshRef = React.useRef<THREE.Mesh>(null);
   const imageFrameRef = React.useRef<THREE.Group>(null);
@@ -385,10 +391,12 @@ function VRZoneMesh({
 
   const handlePointerOver = () => {
     document.body.style.cursor = "pointer";
+    onHover(area);
   };
 
   const handlePointerOut = () => {
     document.body.style.cursor = "default";
+    onHover(null);
   };
 
   return (
@@ -475,9 +483,11 @@ function GlowEffect({
 function VRLabScene({
   selectedArea,
   onSelect,
+  onHover,
 }: {
   selectedArea: VRArea;
   onSelect: (area: VRArea) => void;
+  onHover: (area: VRArea | null) => void;
 }) {
   const gridColor = useMemo(
     () => new THREE.Color(selectedArea.color).multiplyScalar(0.55),
@@ -602,6 +612,7 @@ function VRLabScene({
           area={area}
           active={area.id === selectedArea.id}
           onSelect={onSelect}
+          onHover={onHover}
         />
       ))}
 
@@ -635,6 +646,9 @@ interface VRModuleProps {
 export default function VRModule({ lang, onBack }: VRModuleProps) {
   const [selectedArea, setSelectedArea] = useState<VRArea>(vrAreas[0]);
   const [hoveredArea, setHoveredArea] = useState<AreaId | null>(null);
+  const [hoveredArea3D, setHoveredArea3D] = useState<VRArea | null>(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [rightSidebarOpen, setRightSidebarOpen] = useState(true);
   const text = uiText[lang];
 
   const handleAreaSelect = (area: VRArea) => {
@@ -642,29 +656,63 @@ export default function VRModule({ lang, onBack }: VRModuleProps) {
   };
 
   return (
-    <div className="relative min-h-screen w-full overflow-hidden bg-[#04070d] text-white">
+    <div className="relative h-screen w-full bg-[#04070d] text-white flex flex-col overflow-hidden">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(34,211,238,0.16),transparent_30%),radial-gradient(circle_at_bottom_right,rgba(129,140,248,0.14),transparent_28%)]" />
 
-      <div className="relative z-10 grid min-h-screen grid-cols-1 xl:grid-cols-[320px_minmax(0,1fr)_340px]">
-        <aside className="border-b border-white/10 bg-black/20 p-6 backdrop-blur-xl xl:border-b-0 xl:border-r">
-          <div className="mb-8">
-            <p className="mb-3 inline-flex items-center gap-2 rounded-full border border-cyan-500/30 bg-cyan-500/10 px-3 py-1 text-[11px] uppercase tracking-[0.3em] text-cyan-300">
+      {/* Top Header with Toggle Buttons */}
+      <div className="relative z-40 border-b border-white/10 bg-black/40 backdrop-blur-xl px-3 md:px-6 py-4 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            className="flex items-center justify-center w-9 h-9 rounded-lg border border-cyan-500/40 bg-cyan-500/10 hover:bg-cyan-500/20 transition-all"
+            title={sidebarOpen ? "Menu yopin" : "Menu oching"}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M3 8h18M3 16h18" />
+            </svg>
+          </button>
+          <h1 className="text-base md:text-lg font-semibold">{text.title}</h1>
+        </div>
+
+        <button
+          onClick={() => setRightSidebarOpen(!rightSidebarOpen)}
+          className="flex items-center justify-center w-9 h-9 rounded-lg border border-cyan-500/40 bg-cyan-500/10 hover:bg-cyan-500/20 transition-all"
+          title={rightSidebarOpen ? "Info yopin" : "Info oching"}
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z" />
+          </svg>
+        </button>
+      </div>
+
+      {/* Main Content Area */}
+      <div className="relative z-10 flex flex-1 overflow-hidden">
+        {/* Left Sidebar - Collapsible */}
+        <aside className={`
+          fixed left-0 top-[68px] bottom-0 w-72 md:w-80 xl:static xl:top-0
+          border-r border-white/10 bg-black/30 p-4 md:p-6 backdrop-blur-xl
+          transition-all duration-300 z-30 flex flex-col
+          ${sidebarOpen ? 'translate-x-0' : '-translate-x-full xl:translate-x-0'}
+          overflow-hidden hover:overflow-y-auto
+        `}>
+          <div className="mb-6">
+            <p className="mb-2 inline-flex items-center gap-2 rounded-full border border-cyan-500/30 bg-cyan-500/10 px-3 py-1 text-[10px] uppercase tracking-[0.3em] text-cyan-300">
               <span className="h-2 w-2 rounded-full bg-cyan-400" />
               {text.sceneReady}
             </p>
-            <h2 className="text-3xl font-semibold tracking-tight">
+            <h2 className="text-xl md:text-2xl font-semibold tracking-tight">
               {text.title}
             </h2>
-            <p className="mt-3 text-sm leading-6 text-white/60">
+            <p className="mt-2 text-xs md:text-sm leading-5 text-white/60">
               {text.subtitle}
             </p>
           </div>
 
-          <div>
+          <div className="flex-1 overflow-y-auto pr-2">
             <p className="mb-3 text-xs uppercase tracking-[0.35em] text-white/35">
               {text.areas}
             </p>
-            <div className="space-y-3">
+            <div className="space-y-2">
               {vrAreas.map((area) => {
                 const active = area.id === selectedArea.id;
                 const hovered = area.id === hoveredArea;
@@ -672,12 +720,15 @@ export default function VRModule({ lang, onBack }: VRModuleProps) {
                 return (
                   <motion.button
                     key={area.id}
-                    onClick={() => handleAreaSelect(area)}
+                    onClick={() => {
+                      handleAreaSelect(area);
+                      setSidebarOpen(false);
+                    }}
                     onHoverStart={() => setHoveredArea(area.id)}
                     onHoverEnd={() => setHoveredArea(null)}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className={`w-full rounded-2xl border px-4 py-4 text-left transition-all ${
+                    className={`w-full rounded-xl border px-3 py-3 text-left text-xs md:text-sm transition-all ${
                       active
                         ? "border-cyan-400/50 bg-cyan-500/10 shadow-[0_0_40px_rgba(34,211,238,0.08)]"
                         : hovered
@@ -686,15 +737,14 @@ export default function VRModule({ lang, onBack }: VRModuleProps) {
                     }`}
                   >
                     <div
-                      className="mb-3 h-2 w-14 rounded-full transition-all"
+                      className="mb-2 h-1.5 w-12 rounded-full transition-all"
                       style={{
                         backgroundColor: area.color,
-                        width: hovered || active ? 56 : 56,
                         boxShadow: hovered || active ? `0 0 12px ${area.color}` : "none",
                       }}
                     />
-                    <p className="text-base font-medium">{area.title[lang]}</p>
-                    <p className="mt-2 text-sm leading-5 text-white/50">
+                    <p className="font-medium">{area.title[lang]}</p>
+                    <p className="mt-1 text-white/40 line-clamp-2">
                       {area.summary[lang]}
                     </p>
                   </motion.button>
@@ -704,92 +754,119 @@ export default function VRModule({ lang, onBack }: VRModuleProps) {
           </div>
         </aside>
 
-        <div className="relative min-h-[48vh] xl:min-h-screen">
-          <Canvas dpr={[1, 2]}>
+        {/* Overlay when sidebar open on mobile */}
+        {sidebarOpen && (
+          <div
+            className="fixed inset-0 bg-black/50 z-20 xl:hidden"
+            onClick={() => setSidebarOpen(false)}
+          />
+        )}
+
+        {/* Center Canvas Area - Takes remaining space */}
+        <div className="flex-1 flex flex-col relative">
+          <Canvas dpr={[1, 2]} className="flex-1">
             <VRLabScene
               selectedArea={selectedArea}
               onSelect={handleAreaSelect}
+              onHover={setHoveredArea3D}
             />
           </Canvas>
 
-          <div className="pointer-events-none absolute left-6 top-6 rounded-2xl border border-white/10 bg-black/45 px-4 py-3 backdrop-blur-md">
-            <p className="text-xs uppercase tracking-[0.32em] text-cyan-300">
+          {/* Controls Hint */}
+          <div className="pointer-events-none absolute left-3 md:left-6 top-3 md:top-6 max-w-xs rounded-lg md:rounded-2xl border border-white/10 bg-black/50 px-3 md:px-4 py-2 md:py-3 backdrop-blur-md text-xs md:text-sm">
+            <p className="uppercase tracking-[0.28em] text-cyan-300 text-[10px] md:text-xs">
               {text.controls}
             </p>
-            <p className="mt-2 max-w-xs text-sm leading-5 text-white/60">
+            <p className="mt-1 md:mt-2 text-white/60 text-xs md:text-sm leading-4">
               {text.controlsBody}
             </p>
           </div>
 
+          {/* Back Button */}
           <button
             onClick={onBack}
-            className="absolute bottom-6 right-6 rounded-full border border-red-500/30 bg-red-500/10 px-5 py-3 text-sm font-medium text-red-300 transition hover:bg-red-500 hover:text-white"
+            className="absolute bottom-3 md:bottom-6 right-3 md:right-6 rounded-full border border-red-500/30 bg-red-500/10 px-3 md:px-5 py-2 md:py-3 text-xs md:text-sm font-medium text-red-300 transition hover:bg-red-500/20 hover:text-white"
           >
             {text.back}
           </button>
         </div>
 
-        <aside className="border-t border-white/10 bg-black/20 p-6 backdrop-blur-xl xl:border-l xl:border-t-0">
+        {/* Right Sidebar - Collapsible Info */}
+        <aside className={`
+          fixed right-0 top-[68px] bottom-0 xl:static xl:top-0
+          border-l border-white/10 bg-black/30 p-4 md:p-6 backdrop-blur-xl
+          transition-all duration-300 z-30 flex flex-col
+          ${rightSidebarOpen ? 'w-72 md:w-80 translate-x-0 xl:w-80' : 'w-0 translate-x-full xl:w-0'}
+          overflow-hidden hover:overflow-y-auto
+        `}>
           <motion.div
-            key={selectedArea.id}
-            initial={{ opacity: 0, y: 18 }}
+            key={hoveredArea3D?.id || selectedArea.id}
+            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.28 }}
-            className="max-h-[calc(100vh-80px)] overflow-y-auto"
+            transition={{ duration: 0.2 }}
+            className="flex-1 overflow-y-auto pr-2"
           >
-            <p className="text-xs uppercase tracking-[0.35em] text-white/35">
-              {text.sceneInfo}
+            <div className={hoveredArea3D ? "pb-2 border-b border-white/10" : ""}>
+              {hoveredArea3D && (
+                <p className="text-[10px] uppercase tracking-[0.35em] text-orange-400 font-semibold">
+                  Ustiga borgandi ↓
+                </p>
+              )}
+            </div>
+
+            <p className="text-[10px] uppercase tracking-[0.35em] text-white/35 mt-2">
+              {hoveredArea3D ? "Tanlangan laboratoriya" : text.sceneInfo}
             </p>
-            <h3 className="mt-3 text-2xl font-semibold">
-              {selectedArea.title[lang]}
+            <h3 className="mt-2 text-lg md:text-xl font-semibold">
+              {hoveredArea3D ? hoveredArea3D.title[lang] : selectedArea.title[lang]}
             </h3>
-            <p className="mt-3 text-sm leading-6 text-white/65">
-              {selectedArea.details[lang]}
+            <p className="mt-2 text-xs md:text-sm leading-5 text-white/65">
+              {hoveredArea3D ? hoveredArea3D.details[lang] : selectedArea.details[lang]}
             </p>
 
             {/* Image Preview */}
-            {selectedArea.imageUrl && (
+            {(hoveredArea3D || selectedArea).imageUrl && (
               <motion.div
-                className="mt-6 overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03]"
+                className="mt-4 overflow-hidden rounded-xl border border-white/10 bg-white/[0.03]"
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1, duration: 0.3 }}
+                transition={{ delay: 0.1, duration: 0.2 }}
               >
                 <div className="relative aspect-video w-full overflow-hidden bg-black/50">
                   <img
-                    src={selectedArea.imageUrl}
-                    alt={selectedArea.title[lang]}
-                    className="h-full w-full object-cover"
+                    src={(hoveredArea3D || selectedArea).imageUrl}
+                    alt={(hoveredArea3D || selectedArea).title[lang]}
+                    className="w-full h-full object-cover"
                   />
                 </div>
-                <p className="px-4 py-3 text-xs text-white/50">
-                  {selectedArea.title[lang]}
+                <p className="px-3 py-2 text-xs text-white/50">
+                  {(hoveredArea3D || selectedArea).title[lang]}
                 </p>
               </motion.div>
             )}
 
-            <div className="mt-6 rounded-3xl border border-white/10 bg-white/[0.03] p-5">
-              <p className="text-xs uppercase tracking-[0.32em] text-cyan-300">
+            <div className="mt-4 rounded-xl border border-white/10 bg-white/[0.03] p-4">
+              <p className="text-[10px] uppercase tracking-[0.28em] text-white/35">
                 {text.replaceLabel}
               </p>
-              <p className="mt-3 text-sm leading-6 text-white/60">
-                {selectedArea.mediaHint[lang]}
+              <p className="mt-2 text-xs leading-5 text-white/60">
+                {(hoveredArea3D || selectedArea).mediaHint[lang]}
               </p>
             </div>
 
-            <div className="mt-6 grid grid-cols-3 gap-3">
-              {selectedArea.stats.map((item, idx) => (
+            <div className="mt-4 grid grid-cols-3 gap-2">
+              {(hoveredArea3D || selectedArea).stats.map((item) => (
                 <motion.div
                   key={item.label[lang]}
-                  className="rounded-2xl border border-white/10 bg-white/[0.03] p-4"
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.15 + idx * 0.05, duration: 0.3 }}
+                  className="rounded-lg border border-white/10 bg-white/[0.03] p-3"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.2 }}
                 >
-                  <p className="text-[11px] uppercase tracking-[0.28em] text-white/35">
+                  <p className="text-[9px] uppercase tracking-[0.25em] text-white/35">
                     {item.label[lang]}
                   </p>
-                  <p className="mt-2 text-sm font-medium text-white/85">
+                  <p className="mt-1 text-xs font-medium text-white/85">
                     {item.value}
                   </p>
                 </motion.div>
@@ -797,31 +874,18 @@ export default function VRModule({ lang, onBack }: VRModuleProps) {
             </div>
 
             <motion.div
-              className="mt-6 rounded-3xl border border-white/10 bg-gradient-to-br from-cyan-500/10 to-indigo-500/10 p-5"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2, duration: 0.3 }}
+              className="mt-4 rounded-xl border border-white/10 bg-gradient-to-br from-cyan-500/10 to-indigo-500/10 p-4"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.2 }}
             >
-              <p className="text-xs uppercase tracking-[0.32em] text-cyan-300">
+              <p className="text-[10px] uppercase tracking-[0.28em] text-cyan-300">
                 {text.strategy}
               </p>
-              <p className="mt-3 text-sm leading-6 text-white/65">
+              <p className="mt-2 text-xs leading-5 text-white/65">
                 {text.strategyBody}
               </p>
             </motion.div>
-
-            <div className="mt-6 flex items-center justify-between rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white/55">
-              <span>{text.objectCount}</span>
-              <span className="font-medium text-cyan-300">
-                {vrAreas.length}
-              </span>
-            </div>
-            <div className="mt-3 flex items-center justify-between rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white/55">
-              <span>{text.mode}</span>
-              <span className="font-medium text-cyan-300">
-                {text.modeValue}
-              </span>
-            </div>
           </motion.div>
         </aside>
       </div>

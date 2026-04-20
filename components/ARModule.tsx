@@ -172,53 +172,57 @@ export default function ARModule({ lang, onBack }: ARModuleProps) {
           </button>
         </div>
 
-        <div className="grid flex-1 grid-cols-1 gap-6 p-5 md:p-8 xl:grid-cols-[minmax(0,1fr)_380px]">
-          <div className="relative min-h-[60vh] overflow-hidden rounded-[2rem] border border-white/10 bg-black/60 shadow-[0_0_60px_rgba(0,0,0,0.35)]">
-            {isMobile ? (
-              <>
-                <iframe
-                  title="TV Faculty WebAR"
-                  src="/ar-experience.html"
-                  allow="camera; microphone; accelerometer; gyroscope"
-                  className="h-full min-h-[60vh] w-full border-0"
-                />
-                <div className="pointer-events-none absolute left-4 top-4 max-w-sm rounded-2xl border border-white/10 bg-black/60 px-4 py-3 backdrop-blur-md">
-                  <p className="text-xs uppercase tracking-[0.32em] text-cyan-300">
-                    {text.compatibility}
-                  </p>
-                  <p className="mt-2 text-sm leading-6 text-white/70">{text.mobileHint}</p>
+        <div className="flex flex-1 gap-6 p-5 md:p-8 overflow-hidden">
+          {/* Main Content - Full scrollable */}
+          <div className="flex-1 flex flex-col min-w-0">
+            <div className="relative flex-1 min-h-[50vh] rounded-[2rem] border border-white/10 bg-black/60 shadow-[0_0_60px_rgba(0,0,0,0.35)] overflow-hidden flex flex-col">
+              {isMobile ? (
+                <>
+                  <iframe
+                    title="TV Faculty WebAR"
+                    src="/ar-experience.html"
+                    allow="camera; microphone; accelerometer; gyroscope"
+                    className="flex-1 w-full border-0"
+                  />
+                  <div className="pointer-events-none absolute left-4 top-4 max-w-sm rounded-2xl border border-white/10 bg-black/60 px-4 py-3 backdrop-blur-md">
+                    <p className="text-xs uppercase tracking-[0.32em] text-cyan-300">
+                      {text.compatibility}
+                    </p>
+                    <p className="mt-2 text-sm leading-6 text-white/70">{text.mobileHint}</p>
+                  </div>
+                  <div className="absolute right-4 top-4 rounded-2xl border border-white/10 bg-black/60 px-4 py-3 text-sm backdrop-blur-md">
+                    <p className="text-[11px] uppercase tracking-[0.28em] text-white/40">
+                      {text.statusLabel}
+                    </p>
+                    <p className="mt-2 font-medium text-cyan-300">
+                      {text.statusMap[status]}
+                    </p>
+                  </div>
+                </>
+              ) : (
+                <div className="flex h-full items-center justify-center p-8">
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="max-w-lg rounded-[2rem] border border-white/10 bg-white/[0.04] p-8 text-center backdrop-blur-xl"
+                  >
+                    <p className="text-xs uppercase tracking-[0.35em] text-cyan-300">
+                      Mobile Only
+                    </p>
+                    <h2 className="mt-4 text-3xl font-semibold">
+                      {text.desktopFallback}
+                    </h2>
+                    <p className="mt-4 text-sm leading-6 text-white/60">
+                      {text.fallbackHint}
+                    </p>
+                  </motion.div>
                 </div>
-                <div className="absolute right-4 top-4 rounded-2xl border border-white/10 bg-black/60 px-4 py-3 text-sm backdrop-blur-md">
-                  <p className="text-[11px] uppercase tracking-[0.28em] text-white/40">
-                    {text.statusLabel}
-                  </p>
-                  <p className="mt-2 font-medium text-cyan-300">
-                    {text.statusMap[status]}
-                  </p>
-                </div>
-              </>
-            ) : (
-              <div className="flex h-full min-h-[60vh] items-center justify-center p-8">
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="max-w-lg rounded-[2rem] border border-white/10 bg-white/[0.04] p-8 text-center backdrop-blur-xl"
-                >
-                  <p className="text-xs uppercase tracking-[0.35em] text-cyan-300">
-                    Mobile Only
-                  </p>
-                  <h2 className="mt-4 text-3xl font-semibold">
-                    {text.desktopFallback}
-                  </h2>
-                  <p className="mt-4 text-sm leading-6 text-white/60">
-                    {text.fallbackHint}
-                  </p>
-                </motion.div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
 
-          <aside className="rounded-[2rem] border border-white/10 bg-black/30 p-6 backdrop-blur-xl">
+          {/* Right Sidebar - Fully scrollable */}
+          <aside className="w-full md:w-96 rounded-[2rem] border border-white/10 bg-black/30 p-6 backdrop-blur-xl overflow-y-auto max-h-[calc(100vh-120px)]">
             <p className="text-xs uppercase tracking-[0.35em] text-cyan-300">
               {text.compatibility}
             </p>

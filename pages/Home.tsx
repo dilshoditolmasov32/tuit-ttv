@@ -10,6 +10,7 @@ import Scene3D from "../components/Scene3D";
 import { Language, StaffMember } from "../types";
 import { TRANSLATIONS, STAFF } from "../constants";
 import { getAiResponse } from "../services/gemini";
+import ttfLogo from "../assests/logo.jpg"
 
 
 const SectionHeader = ({
@@ -139,12 +140,12 @@ const Home: React.FC<{ lang: Language }> = ({ lang }) => {
               initial={{ opacity: 0, scale: 0.8 }}
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true }}
-              className="relative"
+              className="relative ronded-lg p-5"
             >
-              <div className="aspect-square glass rounded-[4rem] flex items-center justify-center p-20 overflow-hidden group">
-                <div className="absolute inset-0 bg-gradient-to-tr from-cyan-500/20 to-transparent"></div>
-                <i className="fas fa-satellite text-[180px] text-white/10 group-hover:scale-110 group-hover:text-cyan-500/30 transition-all duration-1000"></i>
-              </div>
+              <img src={ttfLogo} alt="ttf image" style={{
+                borderRadius:"20px",
+              }}/>
+             
             </motion.div>
           </div>
         </section>
