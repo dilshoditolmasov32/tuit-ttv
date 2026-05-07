@@ -57,8 +57,6 @@ export const VRZoneBlock: React.FC<VRZoneBlockProps> = ({
           <boxGeometry args={[3.2, 2.2, 0.1]} />
           <meshBasicMaterial
             color="#00f2fe"
-            emissive="#00f2fe"
-            emissiveIntensity={0.5}
             toneMapped={false}
           />
         </mesh>
@@ -73,43 +71,43 @@ export const VRZoneBlock: React.FC<VRZoneBlockProps> = ({
       >
         <boxGeometry args={[3, 2, 0.2]} />
         
-        {/* Material array: [right, left, top, bottom, front, back] */}
+        {/* Material array: [right(0), left(1), top(2), bottom(3), front(4), back(5)] */}
         <meshStandardMaterial
-          attachArray="material"
+          attach="material-0"
           color="#1a1a1a"
           roughness={0.7}
           metalness={0.2}
         />
         <meshStandardMaterial
-          attachArray="material"
+          attach="material-1"
           color="#1a1a1a"
           roughness={0.7}
           metalness={0.2}
         />
         <meshStandardMaterial
-          attachArray="material"
+          attach="material-2"
           color="#1a1a1a"
           roughness={0.7}
           metalness={0.2}
         />
         <meshStandardMaterial
-          attachArray="material"
+          attach="material-3"
           color="#1a1a1a"
           roughness={0.7}
           metalness={0.2}
         />
-        
-        {/* Front material - tekstura */}
+
+        {/* Front material (index 4) - tekstura */}
         <meshStandardMaterial
-          attachArray="material"
+          attach="material-4"
           map={texture}
           toneMapped={false}
           roughness={0.3}
           metalness={0.0}
         />
-        
+
         <meshStandardMaterial
-          attachArray="material"
+          attach="material-5"
           color="#1a1a1a"
           roughness={0.7}
           metalness={0.2}
