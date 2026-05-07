@@ -15,6 +15,7 @@ type ARStatus =
   | "target-missing"
   | "camera-error"
   | "insecure-context"
+  | "in-app-browser"
   | "unsupported";
 
 type ShowcaseItem = {
@@ -120,7 +121,9 @@ const text = {
     checking: "AR target tekshirilmoqda",
     missing: "MindAR target fayli topilmadi: public/assets/targets/faculty-logo.mind",
     insecure: "Telefonda kamera uchun HTTPS kerak. Oddiy IP/http orqali WebAR ishlamaydi.",
-    unsupported: "Bu brauzer kamera WebAR uchun mos emas",
+    inApp: "Ichki brauzer kamera WebAR uchun mos emas. Linkni Chrome yoki Safari'da oching.",
+    unsupported:
+      "Brauzer kamera WebAR uchun mos emas. Android Chrome yoki iPhone Safari ishlating.",
     error: "Kamera ruxsati yoki AR ishga tushirishda xato",
     hint: "Drag - aylantirish, pinch - zoom, tap - ma'lumot, double tap - reset",
     target: "Image target",
@@ -137,7 +140,8 @@ const text = {
     checking: "Checking AR target",
     missing: "MindAR target file is missing: public/assets/targets/faculty-logo.mind",
     insecure: "Camera WebAR on phones requires HTTPS. Plain IP/http will not work.",
-    unsupported: "This browser is not compatible with camera WebAR",
+    inApp: "In-app browsers are not compatible with camera WebAR. Open the link in Chrome or Safari.",
+    unsupported: "This browser is not compatible with camera WebAR. Use Android Chrome or iPhone Safari.",
     error: "Camera permission or AR startup failed",
     hint: "Drag to rotate, pinch to zoom, tap for info, double tap to reset",
     target: "Image target",
@@ -154,7 +158,8 @@ const text = {
     checking: "Checking AR target",
     missing: "MindAR target file is missing: public/assets/targets/faculty-logo.mind",
     insecure: "Camera WebAR on phones requires HTTPS. Plain IP/http will not work.",
-    unsupported: "This browser is not compatible with camera WebAR",
+    inApp: "In-app browsers are not compatible with camera WebAR. Open the link in Chrome or Safari.",
+    unsupported: "This browser is not compatible with camera WebAR. Use Android Chrome or iPhone Safari.",
     error: "Camera permission or AR startup failed",
     hint: "Drag to rotate, pinch to zoom, tap for info, double tap to reset",
     target: "Image target",
@@ -318,6 +323,7 @@ export default function MobileWebARExperience({
       "target-missing": t.missing,
       "camera-error": t.error,
       "insecure-context": t.insecure,
+      "in-app-browser": t.inApp,
       unsupported: t.unsupported,
     };
     return map[status];
@@ -330,6 +336,11 @@ export default function MobileWebARExperience({
     },
     [onStatusChange],
   );
+
+  const isLikelyInAppBrowser = useCallback(() => {
+    const ua = navigator.userAgent || "";
+    return /FBAN|FBAV|Instagram|Line|LinkedInApp|TikTok|Twitter|Telegram|MicroMessenger/i.test(ua);
+  }, []);
 
   const resetTransform = useCallback(() => {
     transform.current = { rotationX: -0.16, rotationY: 0, scale: 0.74 };
@@ -362,7 +373,12 @@ export default function MobileWebARExperience({
     }
 
     if (!navigator.mediaDevices?.getUserMedia) {
-      updateStatus("unsupported");
+      updateStatus(isLikelyInAppBrowser() ? "in-app-browser" : "unsupported");
+      return;
+    }
+
+    if (isLikelyInAppBrowser()) {
+      updateStatus("in-app-browser");
       return;
     }
 
@@ -491,7 +507,7 @@ export default function MobileWebARExperience({
       stop();
       updateStatus("camera-error");
     }
-  }, [running, stop, updateStatus]);
+  }, [isLikelyInAppBrowser, running, stop, updateStatus]);
 
   useEffect(() => stop, [stop]);
 

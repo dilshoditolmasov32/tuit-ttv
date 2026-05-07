@@ -19,6 +19,7 @@ type ARStatus =
   | "target-missing"
   | "camera-error"
   | "insecure-context"
+  | "in-app-browser"
   | "unsupported";
 
 const uiText = {
@@ -108,7 +109,8 @@ const statusText = {
     "target-missing": "Target .mind fayli topilmadi",
     "camera-error": "Kamera yoki AR xatosi",
     "insecure-context": "HTTPS kerak: telefon IP/http orqali kamerani ochmaydi",
-    unsupported: "Brauzer mos emas yoki HTTPS kerak",
+    "in-app-browser": "Ichki brauzer mos emas: linkni Chrome yoki Safari'da oching",
+    unsupported: "Android Chrome yoki iPhone Safari kerak",
   },
   ru: {
     idle: "AR not started",
@@ -121,7 +123,8 @@ const statusText = {
     "target-missing": "Target .mind file missing",
     "camera-error": "Camera or AR error",
     "insecure-context": "HTTPS required: phones block camera on IP/http pages",
-    unsupported: "Browser unsupported or HTTPS required",
+    "in-app-browser": "In-app browser unsupported: open the link in Chrome or Safari",
+    unsupported: "Use Android Chrome or iPhone Safari",
   },
   en: {
     idle: "AR not started",
@@ -134,7 +137,8 @@ const statusText = {
     "target-missing": "Target .mind file missing",
     "camera-error": "Camera or AR error",
     "insecure-context": "HTTPS required: phones block camera on IP/http pages",
-    unsupported: "Browser unsupported or HTTPS required",
+    "in-app-browser": "In-app browser unsupported: open the link in Chrome or Safari",
+    unsupported: "Use Android Chrome or iPhone Safari",
   },
 } as const;
 
