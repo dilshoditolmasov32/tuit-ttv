@@ -45,9 +45,6 @@ interface VRShowroomSceneProps {
   selectedArea: ShowroomArea;
 }
 
-// ✂️ 2-O'ZGARISH: CameraRigProps va CameraRig funksiyasi to'liq o'chirildi
-// (OrbitControls o'rniga VRPointerLockController VRModule ichida ishlatiladi)
-
 function FocusVignette({ focused }: { focused: boolean }) {
   const meshRef = useRef<THREE.Mesh>(null);
 

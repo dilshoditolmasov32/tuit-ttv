@@ -1,12 +1,4 @@
-/**
- * VRModule.tsx  —  yangilangan versiya
- *
- * O'zgarishlar:
- *  1. OrbitControls o'rniga VRPointerLockController (Pointer Lock + WASD)
- *  2. "Click to enter" ekrani — sahna ustiga bosish kerakligini bildiradi
- *  3. Lock aktiv bo'lganda Esc bosganda chiqish overlay
- *  4. Proximity callback — VRShowroomScene'dan kelgan yaqin panel info'sini ko'rsatadi
- */
+
 
 import React, {
   Suspense,
@@ -21,7 +13,7 @@ import { Html } from "@react-three/drei";
 import { Language } from "../types";
 import { ShowroomArea, VRShowroomScene } from "./vr/VRShowroomScene";
 
-import { VRPointerLockController } from "./Vrpointerlockcontroller";
+import { VRPointerLockController } from "./VRPointerLockController";
 
 import studioImage from "../assests/050A7790.JPG";
 import controlImage from "../assests/050A7793.JPG";

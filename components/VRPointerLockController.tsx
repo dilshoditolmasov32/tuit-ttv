@@ -1,22 +1,3 @@
-/**
- * VRPointerLockController.tsx
- *
- * O'yindagi kabi erkin kamera harakati:
- * - Sichqoncha: ko'rish yo'nalishi (Pointer Lock)
- * - WASD / Arrow keys: oldinga/orqaga/chapga/o'ngga harakat
- * - Shift: tezroq yugurish
- * - Space / E: yuqoriga, C / Q: pastga
- * - Esc: chiqish
- *
- * Props:
- *   areas          – ShowroomArea[] (proximity uchun)
- *   onProximity    – yaqin panel o'zgarganda chaqiriladi
- *   onLockChange   – lock/unlock holati
- *   speed          – harakat tezligi (default 4)
- *   sprintMultiplier – Shift bosganda (default 2.4)
- *   proximityRadius  – yaqinlik radiusi metrda (default 2.8)
- */
-
 import { useEffect, useRef, useCallback } from "react";
 import { useThree, useFrame } from "@react-three/fiber";
 import { PointerLockControls } from "@react-three/drei";
