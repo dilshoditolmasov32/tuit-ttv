@@ -184,6 +184,7 @@ function loadScript(src: string) {
     const script = document.createElement("script");
     script.src = src;
     script.async = true;
+    script.type = "module";   
     script.crossOrigin = "anonymous";
     script.onload = () => {
       script.dataset.loaded = "true";
@@ -560,11 +561,15 @@ export default function MobileWebARExperience({
           pointerState.current.active = false;
         }}
         onTouchStart={(event) => {
-          pointerState.current.pinchDistance = getTouchDistance(event.touches);
+          pointerState.current.pinchDistance = getTouchDistance(
+            event.touches as unknown as TouchList,
+          );
         }}
         onTouchMove={(event) => {
           if (event.touches.length < 2) return;
-          const nextDistance = getTouchDistance(event.touches);
+          const nextDistance = getTouchDistance(
+            event.touches as unknown as TouchList,
+          );
           const previousDistance = pointerState.current.pinchDistance || nextDistance;
           const factor = nextDistance / previousDistance;
           transform.current.scale = THREE.MathUtils.clamp(transform.current.scale * factor, 0.46, 1.45);
