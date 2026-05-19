@@ -58,7 +58,7 @@ export default function Practice({ lang }: PracticeProps) {
     },
   ];
 
-  // When viewing VR or AR - fullscreen mode
+  
   if (activeSection !== "menu") {
     return (
       <div
@@ -71,7 +71,6 @@ export default function Practice({ lang }: PracticeProps) {
           overflow: "hidden",
         }}
       >
-        {/* Fullscreen Toggle Button - Responsive Positioning */}
         <button
           onClick={toggleFullscreen}
           title={isFullscreen ? "Kichraytirish" : "To'liq ekran"}

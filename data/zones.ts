@@ -1,26 +1,16 @@
-/**
- * VRZone type definition
- * Used by VRZoneBlock component to render a 3D zone with a texture image.
- */
+
 export interface VRZone {
-  /** Unique identifier for the zone */
   id: string;
-  /** Path to the image used as a texture on the front face of the block */
   image: string;
-  /** [x, y, z] position in 3D space */
   position: [number, number, number];
-  /** Human-readable label for the zone */
   label?: string;
 }
 
-/**
- * Default VR zones data.
- * You can import and use these in your scene, or define your own array.
- */
+
 export const vrZones: VRZone[] = [
   {
     id: 'studio',
-    image: '/assests/050A7651.jpg',
+    image: '/assests/050A7790.JPG',
     position: [-4.5, 1.8, -2],
     label: 'Broadcast Studio',
   },

@@ -11,8 +11,6 @@ import {
   useTexture,
 } from '@react-three/drei';
 import * as THREE from 'three';
-
-// ── Rasm importlari (sintaksis xatolari tuzatildi) ──────────────────────────
 import logoImg     from '../assests/logo.jpg';
 import image1      from '../assests/050A7790.JPG';
 import image2      from '../assests/050A7793.JPG';

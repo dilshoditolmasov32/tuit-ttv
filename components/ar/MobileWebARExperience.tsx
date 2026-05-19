@@ -308,7 +308,7 @@ export default function MobileWebARExperience({
   const [status, setStatus] = useState<ARStatus>("idle");
   const [running, setRunning] = useState(false);
   const [activeInfo, setActiveInfo] = useState<ShowcaseItem | null>(null);
-  const targetMindUrl = "/assets/targets/faculty-logo.mind";
+  const targetMindUrl = "/public/targets/targets.mind";
   const t = text[lang];
 
   const statusLabel = useMemo(() => {

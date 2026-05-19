@@ -10,12 +10,6 @@ interface VRZoneBlockProps {
   onClick?: () => void;
 }
 
-/**
- * VRZoneBlock Component
- * Rasmli tekstura bilan dinamik 3D zonasi
- * Rasmlar faqat OLD tomonida (material-4) ko'rinadi
- * Qolgan tomonlar #1a1a1a rangida bo'ladi
- */
 export const VRZoneBlock: React.FC<VRZoneBlockProps> = ({
   zone,
   onHover,

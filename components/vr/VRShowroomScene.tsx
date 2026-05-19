@@ -1,11 +1,9 @@
-import React, { useEffect, useMemo, useRef } from "react";
+import React, { useRef, useMemo } from "react";
 import {
   AdaptiveDpr,
   ContactShadows,
   Environment,
   MeshReflectorMaterial,
-  OrbitControls,
-  PerspectiveCamera,
   Preload,
   Sparkles,
   Stars,
@@ -15,6 +13,9 @@ import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { Language } from "../../types";
 import { ImagePanel } from "./ImagePanel";
+
+import { PanelHoverTooltip } from "../Panelhovertooltip";
+import { usePanelProximityAnimation } from "../usePanelProximityAnimation";
 
 export interface ShowroomArea {
   id: string;
@@ -44,123 +45,8 @@ interface VRShowroomSceneProps {
   selectedArea: ShowroomArea;
 }
 
-interface CameraRigProps {
-  focusedArea: ShowroomArea | null;
-  resetSignal: number;
-}
-
-const defaultCameraPosition = new THREE.Vector3(0, 4.35, 10.8);
-const defaultCameraTarget = new THREE.Vector3(0, 1.75, -0.65);
-
-function areaFocusTarget(area: ShowroomArea) {
-  return new THREE.Vector3(area.position[0], area.position[1] * 0.82, area.position[2] - 0.12);
-}
-
-function areaFocusPosition(area: ShowroomArea, compact: boolean) {
-  const rotation = area.rotation ?? [0, 0, 0];
-  const normal = new THREE.Vector3(0, 0, 1)
-    .applyEuler(new THREE.Euler(rotation[0], rotation[1], rotation[2]))
-    .normalize();
-  const distance = compact ? 3.45 : 4.15;
-  const height = compact ? 0.55 : 0.8;
-
-  return new THREE.Vector3(area.position[0], area.position[1] + height, area.position[2])
-    .addScaledVector(normal, distance)
-    .add(new THREE.Vector3(normal.x * 0.15, 0, normal.z * 0.15));
-}
-
-function CameraRig({ focusedArea, resetSignal }: CameraRigProps) {
-  const controlsRef = useRef<any>(null);
-  const desiredPosition = useRef(defaultCameraPosition.clone());
-  const desiredTarget = useRef(defaultCameraTarget.clone());
-  const introProgress = useRef(0);
-  const isInteracting = useRef(false);
-  const { camera, clock, pointer, viewport } = useThree();
-
-  useEffect(() => {
-    camera.position.set(0, 7.4, 15.2);
-  }, [camera]);
-
-  useEffect(() => {
-    const compact = viewport.width < 7;
-    if (focusedArea) {
-      desiredPosition.current.copy(areaFocusPosition(focusedArea, compact));
-      desiredTarget.current.copy(areaFocusTarget(focusedArea));
-    } else {
-      desiredPosition.current.copy(defaultCameraPosition);
-      desiredTarget.current.copy(defaultCameraTarget);
-    }
-  }, [focusedArea, viewport.width]);
-
-  useEffect(() => {
-    desiredPosition.current.copy(defaultCameraPosition);
-    desiredTarget.current.copy(defaultCameraTarget);
-    isInteracting.current = false;
-  }, [resetSignal]);
-
-  useFrame((state, delta) => {
-    const controls = controlsRef.current;
-    if (!controls) return;
-
-    introProgress.current = Math.min(1, introProgress.current + delta * 0.4);
-    const introEase = 1 - Math.pow(1 - introProgress.current, 3);
-    const settle = focusedArea ? 1 - Math.pow(0.002, delta) : 1 - Math.pow(0.012, delta);
-    const targetLerp = isInteracting.current ? 1 - Math.pow(0.15, delta) : settle;
-    const positionLerp = isInteracting.current ? 1 - Math.pow(0.24, delta) : settle;
-
-    const parallaxStrength = focusedArea ? 0.04 : 0.14;
-    const drift = new THREE.Vector3(
-      pointer.x * parallaxStrength,
-      Math.sin(clock.elapsedTime * 0.35) * 0.045 + pointer.y * parallaxStrength * 0.55,
-      0,
-    );
-
-    const nextTarget = desiredTarget.current.clone().add(drift);
-    const introPosition = new THREE.Vector3(0, 7.4, 15.2).lerp(desiredPosition.current, introEase);
-
-    controls.target.lerp(nextTarget, targetLerp);
-    camera.position.lerp(introProgress.current < 1 ? introPosition : desiredPosition.current, positionLerp);
-
-    const distance = camera.position.distanceTo(controls.target);
-    if (distance < controls.minDistance + 0.18) {
-      const direction = camera.position.clone().sub(controls.target).normalize();
-      camera.position.copy(controls.target.clone().addScaledVector(direction, controls.minDistance + 0.18));
-    }
-
-    controls.update();
-  });
-
-  return (
-    <OrbitControls
-      ref={controlsRef}
-      enableDamping
-      dampingFactor={0.08}
-      rotateSpeed={0.52}
-      zoomSpeed={0.82}
-      panSpeed={0.58}
-      screenSpacePanning={false}
-      enablePan
-      enableZoom
-      minDistance={3.8}
-      maxDistance={13.5}
-      minPolarAngle={Math.PI / 4.8}
-      maxPolarAngle={Math.PI / 1.95}
-      minAzimuthAngle={-Math.PI / 2.15}
-      maxAzimuthAngle={Math.PI / 2.15}
-      touches={{
-        ONE: THREE.TOUCH.ROTATE,
-        TWO: THREE.TOUCH.DOLLY_PAN,
-      }}
-      target={defaultCameraTarget.toArray()}
-      onStart={() => {
-        isInteracting.current = true;
-      }}
-      onEnd={() => {
-        isInteracting.current = false;
-      }}
-    />
-  );
-}
+// ✂️ 2-O'ZGARISH: CameraRigProps va CameraRig funksiyasi to'liq o'chirildi
+// (OrbitControls o'rniga VRPointerLockController VRModule ichida ishlatiladi)
 
 function FocusVignette({ focused }: { focused: boolean }) {
   const meshRef = useRef<THREE.Mesh>(null);
@@ -336,6 +222,96 @@ function RoomShell({ onBackgroundDoubleClick }: { onBackgroundDoubleClick: () =>
   );
 }
 
+// ✅ 3-O'ZGARISH: Yangi wrapper komponent — proximity + tooltip + glow
+interface AreaPanelWithEffectsProps {
+  area: ShowroomArea;
+  lang: Language;
+  isHovered: boolean;
+  isFocused: boolean;
+  isActive: boolean;
+  isDimmed: boolean;
+  onSelect: (area: ShowroomArea) => void;
+  onHover: (area: ShowroomArea | null) => void;
+}
+
+function AreaPanelWithEffects({
+  area,
+  lang,
+  isHovered,
+  isFocused,
+  isActive,
+  isDimmed,
+  onSelect,
+  onHover,
+}: AreaPanelWithEffectsProps) {
+  const groupRef = useRef<THREE.Group>(null);
+
+  // Proximity animatsiya hook — kamera 3.2m yaqinlashganda ishlaydi
+  const proximity = usePanelProximityAnimation({
+    panelPosition: area.position,
+    activationRadius: 3.2,
+    scaleMax: 1.055,
+    lerpSpeed: 3.5,
+  });
+
+  // Har kadrda group scale yumshoq yangilanadi
+  useFrame(() => {
+    if (!groupRef.current) return;
+    groupRef.current.scale.setScalar(
+      THREE.MathUtils.lerp(groupRef.current.scale.x, proximity.scale, 0.1)
+    );
+  });
+
+  return (
+    // group origin = (0,0,0) — scale markaz sifatida
+    <group ref={groupRef}>
+      {/* Glow plane: proximity yoki hover bo'lganda yonadi */}
+      <mesh
+        position={[
+          area.position[0],
+          area.position[1],
+          area.position[2] - 0.04,
+        ]}
+        rotation={area.rotation ? [area.rotation[0], area.rotation[1], area.rotation[2]] : [0, 0, 0]}
+      >
+        <planeGeometry args={[3.4, 2.2]} />
+        <meshBasicMaterial
+          color={area.color}
+          transparent
+          opacity={proximity.glowAlpha * 0.14 + (isHovered ? 0.08 : 0)}
+          depthWrite={false}
+        />
+      </mesh>
+
+      {/* Asl ImagePanel — o'zgarishsiz */}
+      <ImagePanel
+        accentColor={area.color}
+        active={isActive}
+        dimmed={isDimmed}
+        focused={isFocused}
+        image={area.image}
+        label={area.title[lang]}
+        position={area.position}
+        rotation={area.rotation}
+        onClick={() => onSelect(area)}
+        onHover={(isHov) => onHover(isHov ? area : null)}
+      />
+
+      {/* Hover tooltip — panel ustida suzib turadi */}
+      <PanelHoverTooltip
+        area={area}
+        lang={lang}
+        visible={isHovered}
+        offset={[
+          area.position[0],
+          area.position[1] + 1.3,
+          area.position[2] + 0.1,
+        ]}
+      />
+    </group>
+  );
+}
+
 export function VRShowroomScene({
   areas,
   focusedArea,
@@ -352,7 +328,9 @@ export function VRShowroomScene({
 
   return (
     <>
-      <PerspectiveCamera makeDefault position={[0, 7.4, 15.2]} fov={42} />
+      {/* ✂️ 4-O'ZGARISH: <PerspectiveCamera makeDefault .../> O'CHIRILDI
+          Kamera endi VRModule Canvas props: camera={{ fov: 75, position: [0,1.7,4] }} */}
+
       <color attach="background" args={["#030712"]} />
       <fog attach="fog" args={["#030712", focused ? 11 : 14, 26]} />
 
@@ -419,24 +397,24 @@ export function VRShowroomScene({
         </Text>
       </group>
 
+      {/* ✅ 4-O'ZGARISH: ImagePanel → AreaPanelWithEffects bilan almashtirildi */}
       {areas.map((area) => {
         const isFocused = focusedArea?.id === area.id;
         const isActive = selectedArea.id === area.id || isFocused;
         const isDimmed = focused && !isFocused;
+        const isHovered = hoveredArea?.id === area.id;
 
         return (
-          <ImagePanel
+          <AreaPanelWithEffects
             key={area.id}
-            accentColor={area.color}
-            active={isActive}
-            dimmed={isDimmed}
-            focused={isFocused}
-            image={area.image}
-            label={area.title[lang]}
-            position={area.position}
-            rotation={area.rotation}
-            onClick={() => onSelect(area)}
-            onHover={(isHovered) => onHover(isHovered ? area : null)}
+            area={area}
+            lang={lang}
+            isHovered={isHovered}
+            isFocused={isFocused}
+            isActive={isActive}
+            isDimmed={isDimmed}
+            onSelect={onSelect}
+            onHover={onHover}
           />
         );
       })}
@@ -450,7 +428,8 @@ export function VRShowroomScene({
         resolution={1024}
         color="#020617"
       />
-      <CameraRig focusedArea={focusedArea} resetSignal={resetSignal} />
+
+
       <AdaptiveDpr pixelated />
       <Preload all />
     </>
