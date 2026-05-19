@@ -123,7 +123,7 @@ const text = {
     insecure: "Telefonda kamera uchun HTTPS kerak. Oddiy IP/http orqali WebAR ishlamaydi.",
     inApp: "Ichki brauzer kamera WebAR uchun mos emas. Linkni Chrome yoki Safari'da oching.",
     unsupported:
-      "Brauzer kamera WebAR uchun mos emas. Android Chrome yoki iPhone Safari ishlating.",
+      "Brauzer kamera WebAR uchun mos emas. Iltimos Android Chrome yoki iPhone Safari ishlating.",
     error: "Kamera ruxsati yoki AR ishga tushirishda xato",
     hint: "Drag - aylantirish, pinch - zoom, tap - ma'lumot, double tap - reset",
     target: "Image target",
