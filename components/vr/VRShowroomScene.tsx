@@ -14,7 +14,7 @@ import * as THREE from "three";
 import { Language } from "../../types";
 import { ImagePanel } from "./ImagePanel";
 
-import { PanelHoverTooltip } from "../Panelhovertooltip";
+import { PanelHoverTooltip } from "../PanelHoverTooltip";
 import { usePanelProximityAnimation } from "../usePanelProximityAnimation";
 
 export interface ShowroomArea {

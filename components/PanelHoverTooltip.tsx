@@ -1,28 +1,4 @@
-/**
- * PanelHoverTooltip.tsx
- *
- * VR panel ustiga sichqoncha borganda chiqadigan tooltip overlay.
- * R3F sahna ichida <Html> orqali render bo'ladi —
- * panel mesh'iga biriktirib qo'yiladi.
- *
- * Ishlatish (VRShowroomScene ichida panel mesh yonida):
- *
- *   <PanelHoverTooltip
- *     area={area}
- *     lang={lang}
- *     visible={hoveredAreaId === area.id}
- *   />
- *
- * Yoki to'g'ridan-to'g'ri mesh onPointerEnter/Leave bilan:
- *
- *   <mesh
- *     onPointerEnter={() => setHovered(area.id)}
- *     onPointerLeave={() => setHovered(null)}
- *   >
- *     ...
- *     {hovered && <PanelHoverTooltip area={area} lang={lang} visible />}
- *   </mesh>
- */
+
 
 import { Html } from "@react-three/drei";
 import { motion, AnimatePresence } from "framer-motion";
