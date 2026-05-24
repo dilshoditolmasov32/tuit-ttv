@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader.js";
+import { MindARThree } from "mind-ar/dist/mindar-image-three.prod.js";
 import { Language } from "../../types";
 
 type ARStatus =
@@ -38,31 +39,9 @@ type MindARThreeInstance = {
   stop: () => void;
 };
 
-declare global {
-  interface Window {
-    MINDAR?: {
-      IMAGE?: {
-        MindARThree: new (options: {
-          container: HTMLElement;
-          imageTargetSrc: string;
-          filterMinCF?: number;
-          filterBeta?: number;
-          warmupTolerance?: number;
-          missTolerance?: number;
-          uiLoading?: "yes" | "no";
-          uiScanning?: "yes" | "no";
-          uiError?: "yes" | "no";
-        }) => MindARThreeInstance;
-      };
-    };
-  }
-}
-
-const MINDAR_SCRIPT =
-  "https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-three.prod.js";
-
 const modelUrl = new URL("../../assests/highres.glb", import.meta.url).href;
 const logoUrl = new URL("../../assests/logo.jpg", import.meta.url).href;
+const targetMindUrl = `${import.meta.env.BASE_URL}assets/targets/faculty-logo.mind`;
 
 const showcaseItems: ShowcaseItem[] = [
   {
@@ -166,34 +145,6 @@ const text = {
     ready: "Camera ready, waiting for target",
   },
 } as const;
-
-function loadScript(src: string) {
-  const existing = document.querySelector<HTMLScriptElement>(`script[src="${src}"]`);
-  if (existing) {
-    return existing.dataset.loaded === "true"
-      ? Promise.resolve()
-      : new Promise<void>((resolve, reject) => {
-          existing.addEventListener("load", () => resolve(), { once: true });
-          existing.addEventListener("error", () => reject(new Error(`Unable to load ${src}`)), {
-            once: true,
-          });
-        });
-  }
-
-  return new Promise<void>((resolve, reject) => {
-    const script = document.createElement("script");
-    script.src = src;
-    script.async = true;
-    script.type = "module";   
-    script.crossOrigin = "anonymous";
-    script.onload = () => {
-      script.dataset.loaded = "true";
-      resolve();
-    };
-    script.onerror = () => reject(new Error(`Unable to load ${src}`));
-    document.head.appendChild(script);
-  });
-}
 
 function createFallbackBroadcastRig() {
   const group = new THREE.Group();
@@ -309,7 +260,6 @@ export default function MobileWebARExperience({
   const [status, setStatus] = useState<ARStatus>("idle");
   const [running, setRunning] = useState(false);
   const [activeInfo, setActiveInfo] = useState<ShowcaseItem | null>(null);
-  const targetMindUrl = "/public/targets/targets.mind";
   const t = text[lang];
 
   const statusLabel = useMemo(() => {
@@ -385,20 +335,14 @@ export default function MobileWebARExperience({
 
     try {
       updateStatus("checking");
-      const targetResponse = await fetch(targetMindUrl, { method: "HEAD" });
+      const targetResponse = await fetch(targetMindUrl, { cache: "no-store" });
       if (!targetResponse.ok) {
         updateStatus("target-missing");
         return;
       }
+      await targetResponse.body?.cancel();
 
       updateStatus("loading");
-      await loadScript(MINDAR_SCRIPT);
-      const MindARThree = window.MINDAR?.IMAGE?.MindARThree;
-      if (!MindARThree) {
-        updateStatus("unsupported");
-        return;
-      }
-
       const mindarThree = new MindARThree({
         container: containerRef.current,
         imageTargetSrc: targetMindUrl,
@@ -409,7 +353,7 @@ export default function MobileWebARExperience({
         uiLoading: "no",
         uiScanning: "no",
         uiError: "no",
-      });
+      }) as MindARThreeInstance;
 
       const { renderer, scene, camera } = mindarThree;
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));

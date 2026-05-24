@@ -190,7 +190,7 @@ export class RaycastController {
   raycaster: THREE.Raycaster;
   mouse: THREE.Vector2;
   selectedObject: THREE.Mesh | null = null;
-  originalMaterial: THREE.Material | null = null;
+  originalMaterial: THREE.Material | THREE.Material[] | null = null;
 
   constructor() {
     this.raycaster = new THREE.Raycaster();
@@ -240,7 +240,7 @@ export class RaycastController {
   }
 
   getSelectedObject(): VRObject | null {
-    return this.selectedObject?.userData || null;
+    return (this.selectedObject?.userData as VRObject | undefined) || null;
   }
 
   dispose() {

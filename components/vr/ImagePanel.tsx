@@ -238,10 +238,10 @@ export function ImagePanel({
         </mesh>
 
         {[
-          { key: "top", position: [0, height / 2 + 0.11, 0.045] as [number, number, number], args: [width + 0.2, borderThickness] },
-          { key: "bottom", position: [0, -height / 2 - 0.11, 0.045] as [number, number, number], args: [width + 0.2, borderThickness] },
-          { key: "left", position: [-width / 2 - 0.11, 0, 0.045] as [number, number, number], args: [borderThickness, height + 0.2] },
-          { key: "right", position: [width / 2 + 0.11, 0, 0.045] as [number, number, number], args: [borderThickness, height + 0.2] },
+          { key: "top", position: [0, height / 2 + 0.11, 0.045] as [number, number, number], args: [width + 0.2, borderThickness] as [number, number] },
+          { key: "bottom", position: [0, -height / 2 - 0.11, 0.045] as [number, number, number], args: [width + 0.2, borderThickness] as [number, number] },
+          { key: "left", position: [-width / 2 - 0.11, 0, 0.045] as [number, number, number], args: [borderThickness, height + 0.2] as [number, number] },
+          { key: "right", position: [width / 2 + 0.11, 0, 0.045] as [number, number, number], args: [borderThickness, height + 0.2] as [number, number] },
         ].map((border, index) => (
           <mesh
             key={border.key}
