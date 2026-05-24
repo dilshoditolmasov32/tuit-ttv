@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Language } from "../types";
-import MobileWebARExperience from "./ar/MobileWebARExperience";
+import DeviceARViewer from "./ar/DeviceARViewer";
 
 interface ARModuleProps {
   lang: Language;
@@ -179,7 +179,30 @@ export default function ARModule({ lang, onBack }: ARModuleProps) {
       <div className="relative z-10 grid min-h-0 flex-1 grid-cols-1 xl:grid-cols-[1fr_22rem]">
         <main className="relative min-h-0 flex-1">
           {isMobile ? (
-            <MobileWebARExperience lang={lang} onStatusChange={setStatus} />
+            <DeviceARViewer
+              modelAlt="Televizion studiya avtomobili 3D modeli"
+              arButtonLabel={
+                lang === "uz"
+                  ? "Xonaga joylashtirish (AR)"
+                  : lang === "ru"
+                    ? "Разместить в комнате (AR)"
+                    : "Place in room (AR)"
+              }
+              loadingLabel={
+                lang === "uz"
+                  ? "3D model yuklanmoqda"
+                  : lang === "ru"
+                    ? "Загрузка 3D модели"
+                    : "Loading 3D model"
+              }
+              hintLabel={
+                lang === "uz"
+                  ? "Modelni aylantirish — suring. Kattalashtirish — pinch."
+                  : lang === "ru"
+                    ? "Поверните модель жестом. Масштаб — pinch."
+                    : "Drag to rotate. Pinch to zoom."
+              }
+            />
           ) : (
             <div className="flex h-full items-center justify-center p-6">
               <motion.div
