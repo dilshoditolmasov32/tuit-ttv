@@ -115,7 +115,7 @@ export function ImagePanel({
     if (frameMaterial) {
       frameMaterial.emissiveIntensity = THREE.MathUtils.lerp(
         frameMaterial.emissiveIntensity,
-        0.16 + hoverMix * 0.16 + activeMix * 0.24 + focusMix * 0.42 - dimMix * 0.08,
+        0.6 + hoverMix * 0.16 + activeMix * 0.24 + focusMix * 0.42 - dimMix * 0.08,
         0.08,
       );
       frameMaterial.roughness = THREE.MathUtils.lerp(
@@ -129,7 +129,7 @@ export function ImagePanel({
     if (imageMaterial) {
       imageMaterial.emissiveIntensity = THREE.MathUtils.lerp(
         imageMaterial.emissiveIntensity,
-        focusMix ? 0.28 : activeMix ? 0.14 : hovered ? 0.08 : 0.03,
+        0.6 + (focusMix ? 0.28 : activeMix ? 0.14 : hovered ? 0.08 : 0.03),
         0.1,
       );
       imageMaterial.opacity = THREE.MathUtils.lerp(
@@ -230,8 +230,8 @@ export function ImagePanel({
           <boxGeometry args={[width + 0.26, height + 0.26, 0.09]} />
           <meshStandardMaterial
             color="#07111f"
-            emissive={accentColor}
-            emissiveIntensity={0.18}
+            emissive="#22d3ee"
+            emissiveIntensity={0.6}
             metalness={0.76}
             roughness={0.24}
           />
@@ -267,8 +267,8 @@ export function ImagePanel({
           <meshStandardMaterial
             map={texture}
             color="#ffffff"
-            emissive="#ffffff"
-            emissiveIntensity={0.04}
+            emissive="#22d3ee"
+            emissiveIntensity={0.6}
             metalness={0}
             roughness={0.34}
             transparent

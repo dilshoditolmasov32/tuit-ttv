@@ -8,6 +8,7 @@ import {
   Sparkles,
   Stars,
   Text,
+  useGLTF,
 } from "@react-three/drei";
 import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
@@ -16,6 +17,16 @@ import { ImagePanel } from "./ImagePanel";
 
 import { PanelHoverTooltip } from "../PanelHoverTooltip";
 import { usePanelProximityAnimation } from "../usePanelProximityAnimation";
+
+const MODEL_PATHS = {
+  studio: "/images/low_poly_small_film_studio.glb",
+  mic: "/images/studio_microphone.glb",
+  speakers: "/images/speakers_subwoofer.glb",
+  softbox: "/images/studio_softbox_light.glb",
+  spotlight: "/images/spotlight_on_tripod.glb",
+} as const;
+
+Object.values(MODEL_PATHS).forEach((path) => useGLTF.preload(path));
 
 export interface ShowroomArea {
   id: string;
@@ -220,6 +231,97 @@ function RoomShell({ onBackgroundDoubleClick }: { onBackgroundDoubleClick: () =>
 }
 
 // ✅ 3-O'ZGARISH: Yangi wrapper komponent — proximity + tooltip + glow
+function ModelPodium({
+  accent = "#22d3ee",
+  position,
+  rotation = [0, 0, 0],
+  scale = [1.8, 0.18, 1.25],
+}: {
+  accent?: string;
+  position: [number, number, number];
+  rotation?: [number, number, number];
+  scale?: [number, number, number];
+}) {
+  return (
+    <group position={position} rotation={rotation}>
+      <mesh castShadow receiveShadow>
+        <boxGeometry args={scale} />
+        <meshStandardMaterial
+          color="#05070d"
+          emissive={accent}
+          emissiveIntensity={0.42}
+          metalness={0.86}
+          roughness={0.22}
+        />
+      </mesh>
+      <mesh position={[0, scale[1] / 2 + 0.012, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <planeGeometry args={[scale[0] * 0.92, scale[2] * 0.82]} />
+        <meshBasicMaterial
+          color={accent}
+          transparent
+          opacity={0.18}
+          depthWrite={false}
+        />
+      </mesh>
+      <pointLight position={[0, 0.42, 0]} color={accent} intensity={18} distance={3.2} />
+    </group>
+  );
+}
+
+function ShowroomModels() {
+  const studio = useGLTF(MODEL_PATHS.studio);
+  const mic = useGLTF(MODEL_PATHS.mic);
+  const speakers = useGLTF(MODEL_PATHS.speakers);
+  const softbox = useGLTF(MODEL_PATHS.softbox);
+  const spotlight = useGLTF(MODEL_PATHS.spotlight);
+
+  return (
+    <group>
+      <group position={[-4.7, 0.2, -2.25]} rotation={[0, 0.42, 0]}>
+        <ModelPodium accent="#22d3ee" position={[0, 0, 0]} scale={[2.25, 0.2, 1.35]} />
+        <primitive
+          object={studio.scene}
+          position={[-0.22, 0.22, 0]}
+          rotation={[0, -0.35, 0]}
+          scale={[0.34, 0.34, 0.34]}
+        />
+        <primitive
+          object={softbox.scene}
+          position={[0.82, 0.26, -0.14]}
+          rotation={[0, -0.85, 0]}
+          scale={[0.42, 0.42, 0.42]}
+        />
+      </group>
+
+      <group position={[0, 0.2, -3.78]}>
+        <ModelPodium accent="#8b5cf6" position={[0, 0, 0]} scale={[1.75, 0.2, 1.2]} />
+        <primitive
+          object={spotlight.scene}
+          position={[0.18, 0.22, -0.06]}
+          rotation={[0, -0.2, 0]}
+          scale={[0.42, 0.42, 0.42]}
+        />
+      </group>
+
+      <group position={[4.7, 0.2, -2.2]} rotation={[0, -0.42, 0]}>
+        <ModelPodium accent="#22d3ee" position={[0, 0, 0]} scale={[2.1, 0.2, 1.3]} />
+        <primitive
+          object={mic.scene}
+          position={[-0.45, 0.24, 0.02]}
+          rotation={[0, 0.25, 0]}
+          scale={[0.34, 0.34, 0.34]}
+        />
+        <primitive
+          object={speakers.scene}
+          position={[0.55, 0.22, -0.02]}
+          rotation={[0, -0.1, 0]}
+          scale={[0.26, 0.26, 0.26]}
+        />
+      </group>
+    </group>
+  );
+}
+
 interface AreaPanelWithEffectsProps {
   area: ShowroomArea;
   lang: Language;
@@ -362,6 +464,7 @@ export function VRShowroomScene({
 
       <Environment preset="city" background={false} environmentIntensity={focused ? 0.55 : 0.78} />
       <Stars radius={70} depth={28} count={1100} factor={2.4} fade speed={0.28} />
+      <Sparkles count={150} scale={15} size={1.2} speed={0.4} color="#22d3ee" />
       <Sparkles
         count={focused ? 42 : 30}
         scale={[18, 8, 18]}
@@ -374,6 +477,7 @@ export function VRShowroomScene({
 
       <StudioArchitecture accent={accent} focused={focused} />
       <LightRibbons accent={accent} focused={focused} />
+      <ShowroomModels />
       <FocusVignette focused={focused} />
       <RoomShell onBackgroundDoubleClick={onBackgroundDoubleClick} />
 
