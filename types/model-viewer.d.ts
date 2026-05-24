@@ -1,4 +1,4 @@
-import type { CSSProperties, DOMAttributes, Ref } from "react";
+import type { CSSProperties, DOMAttributes, Key, Ref } from "react";
 
 export interface ModelViewerElement extends HTMLElement {
   readonly loaded: boolean;
@@ -40,6 +40,7 @@ declare module "react" {
   namespace JSX {
     interface IntrinsicElements {
       "model-viewer": ModelViewerAttributes & {
+        key?: Key;
         ref?: Ref<ModelViewerElement>;
       };
     }

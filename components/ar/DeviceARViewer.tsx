@@ -2,10 +2,42 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import type { ModelViewerElement } from "../../types/model-viewer";
 
 const DEFAULT_MODEL_SRC = `${import.meta.env.BASE_URL}images/car.glb`;
+// iPhone uchun default USDZ fayl manzili
+
 const MODEL_VIEWER_SCRIPT =
   "https://ajax.googleapis.com/ajax/libs/model-viewer/4.0.0/model-viewer.min.js";
 
 type LoadState = "booting" | "loading" | "ready" | "error";
+type ARSupportLevel = "unknown" | "supported" | "limited" | "unsupported";
+
+function isAndroidDevice() {
+  return /Android/i.test(navigator.userAgent || "");
+}
+
+async function detectARSupport(): Promise<ARSupportLevel> {
+  if (!window.isSecureContext) return "unsupported";
+
+  const xr = navigator.xr;
+  if (xr?.isSessionSupported) {
+    try {
+      if (await xr.isSessionSupported("immersive-ar")) {
+        return "supported";
+      }
+    } catch {
+      // Ignore
+    }
+  }
+
+  if (isAndroidDevice()) {
+    return "limited";
+  }
+
+  if (/iPhone|iPad|iPod/i.test(navigator.userAgent || "")) {
+    return "limited";
+  }
+
+  return "unsupported";
+}
 
 function ensureModelViewerReady(): Promise<void> {
   if (customElements.get("model-viewer")) {
@@ -26,32 +58,42 @@ function ensureModelViewerReady(): Promise<void> {
     script.src = MODEL_VIEWER_SCRIPT;
     script.dataset.modelViewerLoader = "true";
     script.onload = () => {
-      customElements.whenDefined("model-viewer").then(() => resolve()).catch(reject);
+      customElements
+        .whenDefined("model-viewer")
+        .then(() => resolve())
+        .catch(reject);
     };
-    script.onerror = () => reject(new Error("model-viewer script failed to load"));
+    script.onerror = () =>
+      reject(new Error("model-viewer script failed to load"));
     document.head.appendChild(script);
   });
 }
 
 export interface DeviceARViewerProps {
   modelSrc?: string;
+  iosModelSrc?: string; // Yangi qo'shilgan prop - iPhone fayli uchun
   modelAlt?: string;
   className?: string;
   arButtonLabel?: string;
   loadingLabel?: string;
   errorLabel?: string;
   unsupportedLabel?: string;
+  arLimitedLabel?: string;
+  arFailedLabel?: string;
   hintLabel?: string;
 }
 
 export default function DeviceARViewer({
   modelSrc = DEFAULT_MODEL_SRC,
+  iosModelSrc,
   modelAlt = "3D avtomobil modeli",
   className = "",
   arButtonLabel = "Xonaga joylashtirish (AR)",
   loadingLabel = "3D model yuklanmoqda",
   errorLabel = "Model yuklanmadi. Internet va fayl manzilini tekshiring.",
   unsupportedLabel = "Bu qurilmada AR qo'llab-quvvatlanmaydi. Android Chrome yoki iPhone Safari ishlating.",
+  arLimitedLabel = "Bu telefon Google Play Services for AR (ARCore) ni qo'llab-quvvatlamaydi. 3D modelni sahifada aylantirish ishlaydi, lekin xonaga joylashtirish AR ishlamasligi mumkin.",
+  arFailedLabel = "AR ochilmadi. Telefoningiz ARCore bilan mos emas. Modelni yuqorida 3D rejimda ko'rishingiz mumkin.",
   hintLabel = "Modelni aylantirish uchun barmoq bilan suring. Kattalashtirish — pinch.",
 }: DeviceARViewerProps) {
   const viewerRef = useRef<ModelViewerElement>(null);
@@ -59,9 +101,15 @@ export default function DeviceARViewer({
   const [progress, setProgress] = useState(0);
   const [canActivateAR, setCanActivateAR] = useState(false);
   const [isActivatingAR, setIsActivatingAR] = useState(false);
+  const [arSupport, setArSupport] = useState<ARSupportLevel>("unknown");
+  const [arNotice, setArNotice] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
+
+    detectARSupport().then((level) => {
+      if (!cancelled) setArSupport(level);
+    });
 
     ensureModelViewerReady()
       .then(() => {
@@ -115,9 +163,18 @@ export default function DeviceARViewer({
         if (!cancelled) setLoadState("error");
       };
 
+      const handleARStatus = (event: Event) => {
+        const status = (event as CustomEvent<{ status?: string }>).detail
+          ?.status;
+        if (status === "failed" || status === "not-presenting") {
+          setArNotice(arFailedLabel);
+        }
+      };
+
       viewer.addEventListener("load", handleLoad);
       viewer.addEventListener("progress", handleProgress);
       viewer.addEventListener("error", handleError);
+      viewer.addEventListener("ar-status", handleARStatus as EventListener);
 
       if (viewer.loaded) {
         handleLoad();
@@ -127,6 +184,10 @@ export default function DeviceARViewer({
         viewer.removeEventListener("load", handleLoad);
         viewer.removeEventListener("progress", handleProgress);
         viewer.removeEventListener("error", handleError);
+        viewer.removeEventListener(
+          "ar-status",
+          handleARStatus as EventListener,
+        );
       };
     };
 
@@ -136,35 +197,50 @@ export default function DeviceARViewer({
       cancelled = true;
       detachListeners?.();
     };
-  }, [loadState, modelSrc]);
+  }, [loadState, modelSrc, arFailedLabel]);
 
   const handleActivateAR = useCallback(async () => {
     const viewer = viewerRef.current;
     if (!viewer?.canActivateAR || loadState !== "ready") return;
+
+    if (arSupport === "limited" && isAndroidDevice()) {
+      setArNotice(arLimitedLabel);
+    }
 
     setIsActivatingAR(true);
     try {
       await viewer.activateAR();
     } catch (error) {
       console.error("Device AR activation failed:", error);
+      setArNotice(arFailedLabel);
     } finally {
       setIsActivatingAR(false);
     }
-  }, [loadState]);
+  }, [arFailedLabel, arLimitedLabel, arSupport, loadState]);
 
   const showModelSpinner = loadState === "booting" || loadState === "loading";
+  const showLimitedAndroidNotice = arSupport === "limited" && isAndroidDevice();
+  const arButtonDisabled =
+    loadState !== "ready" ||
+    !canActivateAR ||
+    isActivatingAR ||
+    arSupport === "unsupported";
 
   return (
-    <div className={`flex h-full min-h-0 w-full flex-col overflow-hidden bg-[#020617] ${className}`}>
+    <div
+      className={`flex h-full min-h-0 w-full flex-col overflow-hidden bg-[#020617] ${className}`}
+    >
       <div className="relative min-h-0 flex-1">
         {loadState !== "booting" && (
           <model-viewer
+            key={modelSrc} 
             ref={viewerRef}
             src={modelSrc}
+            {...(iosModelSrc ? { "ios-src": iosModelSrc } : {})}
             alt={modelAlt}
             ar
             ar-modes="webxr scene-viewer quick-look"
-            ar-scale="auto"
+            ar-scale="fixed" // TO'G'RILANDI: iPhone-da obyektning o'lchami buzilib, yo'qolib qolishini oldini oladi
             ar-placement="floor"
             camera-controls
             auto-rotate
@@ -184,6 +260,7 @@ export default function DeviceARViewer({
               width: "100%",
               height: "100%",
               backgroundColor: "#020617",
+              // @ts-ignore
               "--poster-color": "#020617",
             }}
           />
@@ -196,7 +273,9 @@ export default function DeviceARViewer({
               aria-hidden="true"
             />
             <p className="mt-4 text-sm font-medium text-white">
-              {loadState === "booting" ? "AR tizimi yuklanmoqda..." : loadingLabel}
+              {loadState === "booting"
+                ? "AR tizimi yuklanmoqda..."
+                : loadingLabel}
             </p>
             {loadState === "loading" && (
               <>
@@ -214,18 +293,34 @@ export default function DeviceARViewer({
 
         {loadState === "error" && (
           <div className="absolute inset-0 flex items-center justify-center bg-[#020617]/95 p-6 text-center">
-            <p className="max-w-xs text-sm leading-6 text-red-200">{errorLabel}</p>
+            <p className="max-w-xs text-sm leading-6 text-red-200">
+              {errorLabel}
+            </p>
           </div>
         )}
       </div>
 
       <div className="relative z-10 shrink-0 space-y-2 border-t border-white/10 bg-black/75 px-4 pb-[max(0.75rem,env(safe-area-inset-bottom,0px))] pt-3 backdrop-blur-xl">
-        <p className="text-center text-[11px] leading-4 text-white/50">{hintLabel}</p>
+        <p className="text-center text-[11px] leading-4 text-white/50">
+          {hintLabel}
+        </p>
+
+        {showLimitedAndroidNotice && (
+          <div className="rounded-lg border border-amber-400/30 bg-amber-500/10 px-3 py-2.5 text-xs leading-5 text-amber-100/90">
+            {arLimitedLabel}
+          </div>
+        )}
+
+        {arNotice && (
+          <div className="rounded-lg border border-red-400/25 bg-red-500/10 px-3 py-2.5 text-xs leading-5 text-red-100/90">
+            {arNotice}
+          </div>
+        )}
 
         <button
           type="button"
           onClick={handleActivateAR}
-          disabled={loadState !== "ready" || !canActivateAR || isActivatingAR}
+          disabled={arButtonDisabled}
           className="flex min-h-12 w-full items-center justify-center gap-2 rounded-xl border border-cyan-300/45 bg-gradient-to-r from-cyan-500/20 to-purple-500/20 px-4 py-3 text-sm font-semibold text-cyan-50 shadow-[0_0_32px_rgba(34,211,238,0.18)] transition enabled:active:scale-[0.98] disabled:cursor-not-allowed disabled:border-white/10 disabled:bg-white/5 disabled:text-white/35"
         >
           {isActivatingAR ? (
@@ -256,7 +351,9 @@ export default function DeviceARViewer({
         </button>
 
         {loadState === "ready" && !canActivateAR && (
-          <p className="text-center text-xs leading-5 text-amber-200/85">{unsupportedLabel}</p>
+          <p className="text-center text-xs leading-5 text-amber-200/85">
+            {unsupportedLabel}
+          </p>
         )}
       </div>
     </div>

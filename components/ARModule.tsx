@@ -2,6 +2,9 @@ import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Language } from "../types";
 import DeviceARViewer from "./ar/DeviceARViewer";
+import MobileWebARExperience from "./ar/MobileWebARExperience";
+
+type MobileARMode = "device" | "poster";
 
 interface ARModuleProps {
   lang: Language;
@@ -46,30 +49,36 @@ const uiText = {
       "Production uchun faculty-logo.mind faylini MindAR image compiler orqali public/assets/targets ichiga joylashtiring.",
     back: "Orqaga",
     status: "Holat",
+    modeDevice: "3D model",
+    modePoster: "Poster AR",
+    modePosterHint: "ARCore kerak emas — logoni kameraga tuting",
   },
   ru: {
     title: "Mobile WebAR TV Showcase",
     subtitle:
-      "Browser-based smartphone AR that detects the faculty logo or poster and shows an interactive TV technology 3D exhibit.",
+      "Смартфонный AR: распознаёт логотип или постер факультета и показывает интерактивную 3D-экспозицию.",
     target: "Target: faculty logo/poster",
     compatibility: "Chrome Android, Safari iOS 16+, secure HTTPS",
-    instructions: "Scanning",
+    instructions: "Сканирование",
     instructionsList: [
-      "Open the website on a phone through HTTPS.",
-      "Start the AR camera and allow permission.",
-      "Show the faculty logo or poster on separate paper or another screen.",
-      "Use drag, pinch, tap, and double tap once the model appears.",
+      "Откройте сайт на телефоне через HTTPS.",
+      "Запустите AR-камеру и разрешите доступ.",
+      "Покажите логотип или постер факультета на бумаге или экране.",
+      "После появления модели используйте drag, pinch, tap и double tap.",
     ],
-    controls: "Touch controls",
-    controlsBody: "Tap for info, drag to rotate, pinch to zoom, double tap to reset.",
-    performance: "Mobile optimization",
+    controls: "Сенсорное управление",
+    controlsBody: "Tap — info, drag — rotate, pinch — zoom, double tap — reset.",
+    performance: "Мобильная оптимизация",
     performanceBody:
-      "Uses MindAR image tracking, capped 1.5 DPR, mobile renderer without shadows, fallback model, and GLB bounds normalization.",
-    targetBuild: "Target file",
+      "MindAR image tracking, лимит DPR 1.5, мобильный renderer без теней, fallback model и нормализация GLB.",
+    targetBuild: "Target файл",
     targetBuildBody:
-      "For production, generate faculty-logo.mind with the MindAR image compiler and place it in public/assets/targets.",
-    back: "Back",
-    status: "Status",
+      "Для production создайте faculty-logo.mind через MindAR compiler и поместите в public/assets/targets.",
+    back: "Назад",
+    status: "Статус",
+    modeDevice: "3D модель",
+    modePoster: "Poster AR",
+    modePosterHint: "ARCore не нужен — наведите камеру на логотип",
   },
   en: {
     title: "Mobile WebAR TV Showcase",
@@ -94,6 +103,9 @@ const uiText = {
       "For production, generate faculty-logo.mind with the MindAR image compiler and place it in public/assets/targets.",
     back: "Back",
     status: "Status",
+    modeDevice: "3D model",
+    modePoster: "Poster AR",
+    modePosterHint: "No ARCore — point camera at the logo",
   },
 } as const;
 
@@ -145,10 +157,37 @@ const statusText = {
 const mobileUserAgentPattern =
   /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i;
 
+const deviceModels = [
+  {
+    id: "car",
+    label: "Avtomobil",
+    src: `${import.meta.env.BASE_URL}images/car.glb`,
+    alt: "Avtomobil 3D modeli",
+  },
+  {
+    id: "printer",
+    label: "3D printer",
+    src: `${import.meta.env.BASE_URL}images/3d-printer.glb`,
+    alt: "3D printer modeli",
+  },
+  {
+    id: "building",
+    label: "Bino",
+    src: `${import.meta.env.BASE_URL}images/building.glb`,
+    alt: "Bino 3D modeli",
+  },
+] as const;
+
 export default function ARModule({ lang, onBack }: ARModuleProps) {
   const [isMobile, setIsMobile] = useState(true);
+  const [mobileMode, setMobileMode] = useState<MobileARMode>("device");
+  const [selectedModelId, setSelectedModelId] =
+    useState<(typeof deviceModels)[number]["id"]>("car");
   const [status, setStatus] = useState<ARStatus>("idle");
   const text = uiText[lang];
+  const selectedModel =
+    deviceModels.find((model) => model.id === selectedModelId) ??
+    deviceModels[0];
 
   useEffect(() => {
     const userAgent = navigator.userAgent || navigator.vendor || "";
@@ -179,30 +218,100 @@ export default function ARModule({ lang, onBack }: ARModuleProps) {
       <div className="relative z-10 grid min-h-0 flex-1 grid-cols-1 xl:grid-cols-[1fr_22rem]">
         <main className="relative min-h-0 flex-1">
           {isMobile ? (
-            <DeviceARViewer
-              modelAlt="Televizion studiya avtomobili 3D modeli"
-              arButtonLabel={
-                lang === "uz"
-                  ? "Xonaga joylashtirish (AR)"
-                  : lang === "ru"
-                    ? "Разместить в комнате (AR)"
-                    : "Place in room (AR)"
-              }
-              loadingLabel={
-                lang === "uz"
-                  ? "3D model yuklanmoqda"
-                  : lang === "ru"
-                    ? "Загрузка 3D модели"
-                    : "Loading 3D model"
-              }
-              hintLabel={
-                lang === "uz"
-                  ? "Modelni aylantirish — suring. Kattalashtirish — pinch."
-                  : lang === "ru"
-                    ? "Поверните модель жестом. Масштаб — pinch."
-                    : "Drag to rotate. Pinch to zoom."
-              }
-            />
+            <div className="flex h-full min-h-0 flex-col">
+              <div className="flex shrink-0 gap-2 px-3 pb-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setMobileMode("device")}
+                  className={`flex-1 rounded-lg border px-3 py-2 text-xs font-semibold transition ${
+                    mobileMode === "device"
+                      ? "border-cyan-300/50 bg-cyan-400/15 text-cyan-100"
+                      : "border-white/10 bg-black/30 text-white/60"
+                  }`}
+                >
+                  {text.modeDevice}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setMobileMode("poster")}
+                  className={`flex-1 rounded-lg border px-3 py-2 text-xs font-semibold transition ${
+                    mobileMode === "poster"
+                      ? "border-purple-300/50 bg-purple-400/15 text-purple-100"
+                      : "border-white/10 bg-black/30 text-white/60"
+                  }`}
+                >
+                  {text.modePoster}
+                </button>
+              </div>
+              <p className="shrink-0 px-3 pb-2 text-center text-[10px] leading-4 text-white/45">
+                {text.modePosterHint}
+              </p>
+              <div className="flex min-h-0 flex-1 flex-col">
+                {mobileMode === "device" ? (
+                  <>
+                    <div className="flex shrink-0 gap-2 overflow-x-auto px-3 pb-2">
+                      {deviceModels.map((model) => (
+                        <button
+                          key={model.id}
+                          type="button"
+                          onClick={() => setSelectedModelId(model.id)}
+                          className={`min-w-fit rounded-lg border px-3 py-2 text-xs font-semibold transition ${
+                            selectedModelId === model.id
+                              ? "border-cyan-300/55 bg-cyan-400/15 text-cyan-100"
+                              : "border-white/10 bg-black/30 text-white/60"
+                          }`}
+                        >
+                          {model.label}
+                        </button>
+                      ))}
+                    </div>
+                    <DeviceARViewer
+                      className="min-h-0 flex-1"
+                      modelSrc={selectedModel.src}
+                      iosModelSrc=""
+                      modelAlt={selectedModel.alt}
+                      arButtonLabel={
+                      lang === "uz"
+                        ? "Xonaga joylashtirish (AR)"
+                        : lang === "ru"
+                          ? "Разместить в комнате (AR)"
+                          : "Place in room (AR)"
+                      }
+                      loadingLabel={
+                      lang === "uz"
+                        ? "3D model yuklanmoqda"
+                        : lang === "ru"
+                          ? "Загрузка 3D модели"
+                          : "Loading 3D model"
+                      }
+                      arLimitedLabel={
+                      lang === "uz"
+                        ? "Telefoningiz Google Play Services for AR (ARCore) ni qo'llab-quvvatlamaydi. 3D model sahifada ishlaydi; xonaga joylashtirish AR esa ishlamasligi mumkin."
+                        : lang === "ru"
+                          ? "Ваш телефон не поддерживает Google Play Services for AR (ARCore). 3D модель на странице работает, но AR в комнате может быть недоступен."
+                          : "Your phone does not support Google Play Services for AR (ARCore). The 3D model works on the page, but room AR may be unavailable."
+                      }
+                      arFailedLabel={
+                      lang === "uz"
+                        ? "AR ochilmadi. Qurilmangiz ARCore bilan mos emas. Poster AR rejimini sinab ko'ring."
+                        : lang === "ru"
+                          ? "AR не открылся. Устройство несовместимо с ARCore. Попробуйте режим Poster AR."
+                          : "AR failed to open. Your device is not ARCore-compatible. Try Poster AR mode."
+                      }
+                      hintLabel={
+                      lang === "uz"
+                        ? "Modelni aylantirish — suring. Kattalashtirish — pinch."
+                        : lang === "ru"
+                          ? "Поверните модель жестом. Масштаб — pinch."
+                          : "Drag to rotate. Pinch to zoom."
+                      }
+                    />
+                  </>
+                ) : (
+                  <MobileWebARExperience lang={lang} onStatusChange={setStatus} />
+                )}
+              </div>
+            </div>
           ) : (
             <div className="flex h-full items-center justify-center p-6">
               <motion.div
