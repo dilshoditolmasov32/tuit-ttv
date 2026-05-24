@@ -280,6 +280,7 @@ export default function MobileWebARExperience({
   const containerRef = useRef<HTMLDivElement>(null);
   const mindarRef = useRef<MindARThreeInstance | null>(null);
   const contentRef = useRef<THREE.Group | null>(null);
+  const previewRef = useRef<THREE.Group | null>(null);
   const frameRef = useRef<number | null>(null);
   const pointerState = useRef({
     active: false,
@@ -344,6 +345,7 @@ export default function MobileWebARExperience({
     }
     mindarRef.current = null;
     contentRef.current = null;
+    previewRef.current = null;
     setRunning(false);
     updateStatus("idle");
   }, [updateStatus]);
@@ -409,8 +411,14 @@ export default function MobileWebARExperience({
       anchor.group.add(content);
       contentRef.current = content;
 
-      anchor.onTargetFound = () => updateStatus("marker-found");
-      anchor.onTargetLost = () => updateStatus("marker-lost");
+      anchor.onTargetFound = () => {
+        if (previewRef.current) previewRef.current.visible = false;
+        updateStatus("marker-found");
+      };
+      anchor.onTargetLost = () => {
+        if (previewRef.current) previewRef.current.visible = true;
+        updateStatus("marker-lost");
+      };
 
       // Start camera immediately while the user-gesture is still active (required on iOS Safari).
       updateStatus("camera-permission");
@@ -422,6 +430,15 @@ export default function MobileWebARExperience({
       } catch (playError) {
         console.warn("MindAR video play retry:", playError);
       }
+
+      const previewGroup = new THREE.Group();
+      const previewModel = createFallbackBroadcastRig();
+      previewModel.scale.setScalar(0.24);
+      previewGroup.add(previewModel);
+      addNeonStage(previewGroup);
+      previewGroup.position.set(0, -0.08, -0.95);
+      camera.add(previewGroup);
+      previewRef.current = previewGroup;
 
       mindarRef.current = mindarThree;
       setRunning(true);
@@ -463,6 +480,10 @@ export default function MobileWebARExperience({
       const clock = new THREE.Clock();
       const animate = () => {
         const elapsed = clock.getElapsedTime();
+        if (previewRef.current?.visible) {
+          previewRef.current.rotation.y = elapsed * 0.65;
+          previewRef.current.position.y = -0.08 + Math.sin(elapsed * 1.5) * 0.03;
+        }
         if (contentRef.current) {
           const current = transform.current;
           contentRef.current.rotation.x = THREE.MathUtils.lerp(
@@ -506,10 +527,11 @@ export default function MobileWebARExperience({
   };
 
   return (
-    <div className="relative h-full w-full overflow-hidden bg-black">
-      <div
-        ref={containerRef}
-        className="absolute inset-0 touch-none"
+    <div className="relative flex h-full min-h-0 w-full flex-col overflow-hidden bg-black">
+      <div className="relative min-h-0 flex-1">
+        <div
+          ref={containerRef}
+          className="absolute inset-0 touch-none"
         onPointerDown={(event) => {
           pointerState.current.active = true;
           pointerState.current.lastX = event.clientX;
@@ -564,16 +586,16 @@ export default function MobileWebARExperience({
       />
 
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_34%,rgba(2,6,23,0.44)_100%)]" />
-      <div className="pointer-events-none absolute left-1/2 top-1/2 h-[58vmin] w-[58vmin] -translate-x-1/2 -translate-y-1/2 rounded-lg border border-cyan-300/40 shadow-[0_0_30px_rgba(34,211,238,0.16)]">
+      <div className="pointer-events-none absolute left-1/2 top-1/2 h-[min(58vmin,52vw)] w-[min(58vmin,52vw)] max-h-[calc(100%-11rem)] max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 rounded-lg border border-cyan-300/40 shadow-[0_0_30px_rgba(34,211,238,0.16)]">
         <div className="absolute -left-1 -top-1 h-8 w-8 border-l-2 border-t-2 border-cyan-300" />
         <div className="absolute -right-1 -top-1 h-8 w-8 border-r-2 border-t-2 border-cyan-300" />
         <div className="absolute -bottom-1 -left-1 h-8 w-8 border-b-2 border-l-2 border-cyan-300" />
         <div className="absolute -bottom-1 -right-1 h-8 w-8 border-b-2 border-r-2 border-cyan-300" />
       </div>
 
-      <div className="absolute left-3 right-3 top-3 z-20 rounded-lg border border-white/10 bg-black/55 p-3 backdrop-blur-md">
+      <div className="absolute left-3 right-3 top-2 z-20 rounded-lg border border-white/10 bg-black/55 p-2.5 backdrop-blur-md sm:p-3">
         <div className="flex items-start gap-3">
-          <img src={logoUrl} alt="Faculty target" className="h-12 w-12 rounded-md object-cover" />
+          <img src={logoUrl} alt="Faculty target" className="h-10 w-10 shrink-0 rounded-md object-cover sm:h-12 sm:w-12" />
           <div className="min-w-0 flex-1">
             <p className="text-[10px] uppercase tracking-[0.24em] text-cyan-300">{t.target}</p>
             <p className="mt-1 text-sm font-medium text-white">{statusLabel}</p>
@@ -581,30 +603,37 @@ export default function MobileWebARExperience({
           </div>
         </div>
       </div>
-
-      <div className="absolute bottom-4 left-3 right-3 z-20 flex items-end gap-3">
-        <button
-          onClick={running ? stop : start}
-          className="min-h-12 flex-1 rounded-lg border border-cyan-300/40 bg-cyan-400/15 px-4 py-3 text-sm font-semibold text-cyan-100 shadow-[0_0_28px_rgba(34,211,238,0.12)] backdrop-blur-md transition active:scale-[0.98]"
-        >
-          {running ? t.stop : t.start}
-        </button>
-        <button
-          onClick={resetTransform}
-          className="min-h-12 rounded-lg border border-white/10 bg-black/45 px-4 py-3 text-sm font-semibold text-white/80 backdrop-blur-md transition active:scale-[0.98]"
-          title="Reset"
-        >
-          Reset
-        </button>
       </div>
 
-      {activeInfo && (
-        <div className="absolute bottom-20 left-3 right-3 z-30 rounded-lg border border-cyan-300/25 bg-[#020617]/85 p-4 text-white shadow-[0_0_36px_rgba(34,211,238,0.18)] backdrop-blur-xl">
-          <div className="mb-3 h-1 w-16 rounded-full" style={{ backgroundColor: activeInfo.color }} />
-          <h2 className="text-lg font-semibold">{activeInfo.title[lang]}</h2>
-          <p className="mt-2 text-sm leading-6 text-white/68">{activeInfo.body[lang]}</p>
+      <div className="relative z-20 shrink-0 space-y-2 border-t border-white/10 bg-black/70 px-3 pt-2 ar-safe-bottom backdrop-blur-xl">
+        {activeInfo && (
+          <div className="rounded-lg border border-cyan-300/25 bg-[#020617]/90 p-3 text-white shadow-[0_0_36px_rgba(34,211,238,0.18)] sm:p-4">
+            <div className="mb-2 h-1 w-16 rounded-full sm:mb-3" style={{ backgroundColor: activeInfo.color }} />
+            <h2 className="text-base font-semibold sm:text-lg">{activeInfo.title[lang]}</h2>
+            <p className="mt-1.5 text-xs leading-5 text-white/68 sm:mt-2 sm:text-sm sm:leading-6">
+              {activeInfo.body[lang]}
+            </p>
+          </div>
+        )}
+
+        <div className="flex items-stretch gap-2 sm:gap-3">
+          <button
+            type="button"
+            onClick={running ? stop : start}
+            className="min-h-11 flex-1 rounded-lg border border-cyan-300/40 bg-cyan-400/15 px-3 py-2.5 text-sm font-semibold text-cyan-100 shadow-[0_0_28px_rgba(34,211,238,0.12)] backdrop-blur-md transition active:scale-[0.98] sm:min-h-12 sm:px-4 sm:py-3"
+          >
+            {running ? t.stop : t.start}
+          </button>
+          <button
+            type="button"
+            onClick={resetTransform}
+            className="min-h-11 shrink-0 rounded-lg border border-white/10 bg-black/45 px-3 py-2.5 text-sm font-semibold text-white/80 backdrop-blur-md transition active:scale-[0.98] sm:min-h-12 sm:px-4 sm:py-3"
+            title="Reset"
+          >
+            Reset
+          </button>
         </div>
-      )}
+      </div>
     </div>
   );
 }

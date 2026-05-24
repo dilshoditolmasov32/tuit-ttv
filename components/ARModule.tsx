@@ -158,10 +158,10 @@ export default function ARModule({ lang, onBack }: ARModuleProps) {
   }, []);
 
   return (
-    <div className="relative flex h-screen w-full flex-col overflow-hidden bg-[#030712] text-white">
+    <motion.div className="relative flex h-[100dvh] max-h-[100dvh] w-full flex-col overflow-hidden bg-[#030712] text-white">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.16),transparent_28%),radial-gradient(circle_at_bottom_right,rgba(168,85,247,0.18),transparent_30%)]" />
 
-      <header className="relative z-30 flex items-center justify-between border-b border-white/10 bg-black/45 px-3 py-3 backdrop-blur-xl md:px-6">
+      <header className="relative z-30 flex shrink-0 items-center justify-between border-b border-white/10 bg-black/45 px-3 py-2.5 backdrop-blur-xl ar-safe-top md:px-6 md:py-3">
         <div className="min-w-0">
           <p className="truncate text-[10px] uppercase tracking-[0.3em] text-cyan-300">
             {text.target}
@@ -177,7 +177,7 @@ export default function ARModule({ lang, onBack }: ARModuleProps) {
       </header>
 
       <div className="relative z-10 grid min-h-0 flex-1 grid-cols-1 xl:grid-cols-[1fr_22rem]">
-        <main className="relative min-h-0">
+        <main className="relative min-h-0 flex-1">
           {isMobile ? (
             <MobileWebARExperience lang={lang} onStatusChange={setStatus} />
           ) : (
@@ -250,6 +250,6 @@ export default function ARModule({ lang, onBack }: ARModuleProps) {
           </div>
         </aside>
       </div>
-    </div>
+    </motion.div>
   );
 }
