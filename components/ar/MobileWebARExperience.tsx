@@ -30,6 +30,7 @@ type MindARThreeInstance = {
   renderer: THREE.WebGLRenderer;
   scene: THREE.Scene;
   camera: THREE.PerspectiveCamera;
+  video: HTMLVideoElement;
   addAnchor: (targetIndex: number) => {
     group: THREE.Group;
     onTargetFound?: () => void;
@@ -37,7 +38,39 @@ type MindARThreeInstance = {
   };
   start: () => Promise<void>;
   stop: () => void;
+  resize: () => void;
 };
+
+function fixMindARCameraFeed(
+  mindarThree: MindARThreeInstance,
+  container: HTMLDivElement | null,
+) {
+  const { renderer, video } = mindarThree;
+  if (!container || !video) return;
+
+  container.style.isolation = "isolate";
+  container.style.background = "transparent";
+
+  video.setAttribute("playsinline", "true");
+  video.setAttribute("webkit-playsinline", "true");
+  video.muted = true;
+  video.playsInline = true;
+  video.style.position = "absolute";
+  video.style.top = "0";
+  video.style.left = "0";
+  video.style.width = "100%";
+  video.style.height = "100%";
+  video.style.objectFit = "cover";
+  video.style.zIndex = "0";
+
+  const canvas = renderer.domElement;
+  canvas.style.zIndex = "1";
+
+  renderer.setClearColor(0x000000, 0);
+  renderer.setClearAlpha(0);
+
+  mindarThree.resize();
+}
 
 const modelUrl = new URL("../../assests/highres.glb", import.meta.url).href;
 const logoUrl = new URL("../../assests/logo.jpg", import.meta.url).href;
@@ -376,6 +409,24 @@ export default function MobileWebARExperience({
       anchor.group.add(content);
       contentRef.current = content;
 
+      anchor.onTargetFound = () => updateStatus("marker-found");
+      anchor.onTargetLost = () => updateStatus("marker-lost");
+
+      // Start camera immediately while the user-gesture is still active (required on iOS Safari).
+      updateStatus("camera-permission");
+      await mindarThree.start();
+      fixMindARCameraFeed(mindarThree, containerRef.current);
+
+      try {
+        await mindarThree.video.play();
+      } catch (playError) {
+        console.warn("MindAR video play retry:", playError);
+      }
+
+      mindarRef.current = mindarThree;
+      setRunning(true);
+      updateStatus("ready");
+
       let model = createFallbackBroadcastRig();
       try {
         const draco = new DRACOLoader();
@@ -408,15 +459,6 @@ export default function MobileWebARExperience({
       model.userData.selectable = showcaseItems[0].id;
       content.add(model);
       addNeonStage(content);
-
-      anchor.onTargetFound = () => updateStatus("marker-found");
-      anchor.onTargetLost = () => updateStatus("marker-lost");
-
-      updateStatus("camera-permission");
-      await mindarThree.start();
-      mindarRef.current = mindarThree;
-      setRunning(true);
-      updateStatus("ready");
 
       const clock = new THREE.Clock();
       const animate = () => {
