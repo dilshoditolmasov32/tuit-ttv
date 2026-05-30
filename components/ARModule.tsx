@@ -159,29 +159,40 @@ const mobileUserAgentPattern =
 
 const deviceModels = [
   {
-    id: "jism",
-    label: "Jism",
-    src: `${import.meta.env.BASE_URL}images/3d-object-2.glb`,
-    alt: " Shaklning 3D modeli",
-  },
-  {
-    id: "printer",
-    label: "3D printer",
-    src: `${import.meta.env.BASE_URL}images/3d-printer.glb`,
-    alt: "3D printer modeli",
-  },
-  {
     id: "mixer",
     label: "Mixer",
     src: `${import.meta.env.BASE_URL}images/mixer.glb`,
     alt: "Mixer modeli",
   },
- 
+  {
+    id: "studio",
+    label: "Studio Microphone",
+    src: `${import.meta.env.BASE_URL}images/studio_microphone.glb`,
+    alt: "Mikrofon modeli",
+  },
   {
     id: "softbox",
     label: "Softbox",
-    src: `${import.meta.env.BASE_URL}images/studio_softbox.glb`,
-    alt: "Softbox modeli",
+    src: `${import.meta.env.BASE_URL}images/studio_softbox_light.glb`,
+    alt: "Softbox yoritgich modeli",
+  },
+  {
+    id: "spotlight",
+    label: "Spotlight",
+    src: `${import.meta.env.BASE_URL}images/spotlight_on_tripod.glb`,
+    alt: "Spotlayt chiroq modeli",
+  },
+  {
+    id: "speakers",
+    label: "Speakers",
+    src: `${import.meta.env.BASE_URL}images/speakers_subwoofer.glb`,
+    alt: "Karnaylar modeli",
+  },
+  {
+    id: "on_air",
+    label: "On Air Sign",
+    src: `${import.meta.env.BASE_URL}images/on_air_sign.glb`,
+    alt: "Efir ko'rsatkichi belgisi",
   },
 ] as const;
 
@@ -189,7 +200,7 @@ export default function ARModule({ lang, onBack }: ARModuleProps) {
   const [isMobile, setIsMobile] = useState(true);
   const [mobileMode, setMobileMode] = useState<MobileARMode>("device");
   const [selectedModelId, setSelectedModelId] =
-    useState<(typeof deviceModels)[number]["id"]>("jism");
+    useState<(typeof deviceModels)[number]["id"]>("mixer");
   const [status, setStatus] = useState<ARStatus>("idle");
   const text = uiText[lang];
   const selectedModel =
