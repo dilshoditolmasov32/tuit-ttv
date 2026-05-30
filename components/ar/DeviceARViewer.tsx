@@ -71,7 +71,7 @@ function ensureModelViewerReady(): Promise<void> {
 
 export interface DeviceARViewerProps {
   modelSrc?: string;
-  iosModelSrc?: string; // Yangi qo'shilgan prop - iPhone fayli uchun
+  iosModelSrc?: string; 
   modelAlt?: string;
   className?: string;
   arButtonLabel?: string;

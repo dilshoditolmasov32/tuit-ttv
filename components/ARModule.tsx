@@ -160,7 +160,7 @@ const mobileUserAgentPattern =
 const deviceModels = [
   {
     id: "jism",
-    label: "Avtomobil",
+    label: "Jism",
     src: `${import.meta.env.BASE_URL}images/3d-object-2.glb`,
     alt: " Shaklning 3D modeli",
   },
@@ -176,12 +176,7 @@ const deviceModels = [
     src: `${import.meta.env.BASE_URL}images/mixer.glb`,
     alt: "Mixer modeli",
   },
-  {
-    id: "studio",
-    label: "Studio Microphone",
-    src: `${import.meta.env.BASE_URL}images/studio_microphone.glb`,
-    alt: "Mikrofon modeli",
-  },
+ 
   {
     id: "softbox",
     label: "Softbox",
