@@ -12,8 +12,6 @@ import { Canvas } from "@react-three/fiber";
 import { Html } from "@react-three/drei";
 import { Language } from "../types";
 import { ShowroomArea, VRShowroomScene } from "./vr/VRShowroomScene";
-import { OnAirStudioExperience } from "./vr/OnAirStudioExperience";
-
 import { VRPointerLockController } from "./VRPointerLockController";
 
 import studioImage from "../assests/050A7790.JPG";
@@ -285,8 +283,6 @@ interface VRModuleProps {
   onBack: () => void;
 }
 
-type VRExperienceMode = "hub" | "on-air" | "museum";
-
 function CanvasLoader() {
   return (
     <Html center>
@@ -310,172 +306,7 @@ function Crosshair() {
   );
 }
 
-const hubText = {
-  uz: {
-    eyebrow: "VR tajriba tanlovi",
-    title: "Virtual studiya ikki qismdan iborat",
-    subtitle:
-      "Avval yangi ON AIR broadcast tajribasini ko'ring yoki mavjud VR muzeyga o'ting.",
-    onAirTitle: "ON AIR Studio",
-    onAirDesc:
-      "Qizil efir tugmasini bosing, chiroqlar yonadi va 3D broadcast obyektlari jonlanadi.",
-    museumTitle: "VR Museum",
-    museumDesc:
-      "Hozirgi virtual showroom muzey shaklida saqlanadi: rasmlar, panellar va fakultet zonalari.",
-    enter: "Kirish",
-    back: "Orqaga",
-  },
-  ru: {
-    eyebrow: "Выбор VR опыта",
-    title: "Виртуальная студия состоит из двух частей",
-    subtitle:
-      "Запустите новый ON AIR broadcast опыт или перейдите в существующий VR музей.",
-    onAirTitle: "ON AIR Studio",
-    onAirDesc:
-      "Нажмите красную кнопку эфира: включатся lights и оживут 3D broadcast объекты.",
-    museumTitle: "VR Museum",
-    museumDesc:
-      "Текущий virtual showroom сохраняется как музей: фото, панели и зоны факультета.",
-    enter: "Войти",
-    back: "Назад",
-  },
-  en: {
-    eyebrow: "VR experience hub",
-    title: "The virtual studio has two parts",
-    subtitle:
-      "Start the new ON AIR broadcast experience or open the existing VR museum.",
-    onAirTitle: "ON AIR Studio",
-    onAirDesc:
-      "Press the red broadcast button, turn on the lights, and reveal animated 3D studio objects.",
-    museumTitle: "VR Museum",
-    museumDesc:
-      "The current virtual showroom remains as a museum with photos, panels, and faculty zones.",
-    enter: "Enter",
-    back: "Back",
-  },
-} as const;
-
-function VRExperienceHub({
-  lang,
-  onBack,
-  onSelect,
-}: {
-  lang: Language;
-  onBack: () => void;
-  onSelect: (mode: Exclude<VRExperienceMode, "hub">) => void;
-}) {
-  const text = hubText[lang];
-  const cards = [
-    {
-      id: "on-air" as const,
-      title: text.onAirTitle,
-      desc: text.onAirDesc,
-      accent: "#ef4444",
-      icon: "ON",
-    },
-    {
-      id: "museum" as const,
-      title: text.museumTitle,
-      desc: text.museumDesc,
-      accent: "#22d3ee",
-      icon: "VR",
-    },
-  ];
-
-  return (
-    <div className="relative flex h-screen w-full flex-col overflow-hidden bg-[#030712] text-white">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(239,68,68,0.22),transparent_28%),radial-gradient(circle_at_bottom_right,rgba(34,211,238,0.2),transparent_30%)]" />
-      <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.035)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.035)_1px,transparent_1px)] bg-[size:48px_48px]" />
-
-      <div className="relative z-10 flex flex-1 items-center justify-center px-5 py-20">
-        <div className="w-full max-w-6xl">
-          <motion.div
-            initial={{ opacity: 0, y: 18 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.45 }}
-            className="mx-auto mb-10 max-w-3xl text-center"
-          >
-            <p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.32em] text-cyan-300">
-              {text.eyebrow}
-            </p>
-            <h1 className="text-3xl font-black tracking-tight md:text-5xl">
-              {text.title}
-            </h1>
-            <p className="mx-auto mt-4 max-w-2xl text-sm leading-6 text-white/62 md:text-base">
-              {text.subtitle}
-            </p>
-          </motion.div>
-
-          <div className="grid gap-5 md:grid-cols-2">
-            {cards.map((card, index) => (
-              <motion.button
-                key={card.id}
-                initial={{ opacity: 0, y: 26 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 + index * 0.08, duration: 0.42 }}
-                whileHover={{ y: -6, scale: 1.01 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={() => onSelect(card.id)}
-                className="group relative min-h-[21rem] overflow-hidden rounded-lg border border-white/10 bg-black/45 p-6 text-left shadow-2xl backdrop-blur-xl transition hover:border-white/25 md:p-8"
-              >
-                <div
-                  className="absolute inset-x-0 top-0 h-1"
-                  style={{ backgroundColor: card.accent }}
-                />
-                <div
-                  className="absolute -right-16 -top-16 h-48 w-48 rounded-full opacity-20 blur-3xl transition group-hover:opacity-35"
-                  style={{ backgroundColor: card.accent }}
-                />
-
-                <div
-                  className="mb-8 flex h-20 w-20 items-center justify-center rounded-full border text-xl font-black tracking-widest"
-                  style={{
-                    borderColor: `${card.accent}66`,
-                    backgroundColor: `${card.accent}18`,
-                    color: card.accent,
-                    boxShadow: `0 0 34px ${card.accent}22`,
-                  }}
-                >
-                  {card.icon}
-                </div>
-
-                <h2 className="text-2xl font-bold md:text-3xl">{card.title}</h2>
-                <p className="mt-4 max-w-md text-sm leading-6 text-white/60">
-                  {card.desc}
-                </p>
-
-                <div className="absolute bottom-6 left-6 right-6 flex items-center justify-between border-t border-white/10 pt-5 md:left-8 md:right-8">
-                  <span className="text-xs font-semibold uppercase tracking-[0.22em] text-white/45">
-                    {text.enter}
-                  </span>
-                  <span
-                    className="flex h-10 w-10 items-center justify-center rounded-full border transition group-hover:translate-x-1"
-                    style={{ borderColor: `${card.accent}66`, color: card.accent }}
-                  >
-                    →
-                  </span>
-                </div>
-              </motion.button>
-            ))}
-          </div>
-
-          <div className="mt-8 text-center">
-            <button
-              onClick={onBack}
-              className="rounded-full border border-white/10 bg-white/5 px-5 py-3 text-xs font-medium text-white/65 transition hover:bg-white/10 hover:text-white"
-            >
-              {text.back}
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 export default function VRModule({ lang, onBack }: VRModuleProps) {
-  const [experienceMode, setExperienceMode] =
-    useState<VRExperienceMode>("hub");
   const [selectedArea, setSelectedArea] = useState<ShowroomArea>(
     showroomAreas[0],
   );
@@ -544,26 +375,6 @@ export default function VRModule({ lang, onBack }: VRModuleProps) {
     }
   }, []);
 
-  if (experienceMode === "hub") {
-    return (
-      <VRExperienceHub
-        lang={lang}
-        onBack={onBack}
-        onSelect={setExperienceMode}
-      />
-    );
-  }
-
-  if (experienceMode === "on-air") {
-    return (
-      <OnAirStudioExperience
-        lang={lang}
-        onBackToHub={() => setExperienceMode("hub")}
-        onExit={onBack}
-      />
-    );
-  }
-
   return (
     <div className="relative flex h-screen w-full flex-col overflow-hidden bg-[#030712] text-white">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.18),transparent_28%),radial-gradient(circle_at_bottom_right,rgba(139,92,246,0.2),transparent_30%)]" />
@@ -614,12 +425,6 @@ export default function VRModule({ lang, onBack }: VRModuleProps) {
         </div>
 
         <div className="flex items-center gap-2">
-          <button
-            onClick={() => setExperienceMode("hub")}
-            className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-xs font-medium text-white/65 transition hover:bg-white/10 hover:text-white"
-          >
-            {hubText[lang].eyebrow}
-          </button>
           <button
             onClick={() => setRightSidebarOpen((v) => !v)}
             className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-cyan-500/40 bg-cyan-500/10 transition hover:bg-cyan-500/20"
