@@ -129,7 +129,7 @@ export function ImagePanel({
     if (imageMaterial) {
       imageMaterial.emissiveIntensity = THREE.MathUtils.lerp(
         imageMaterial.emissiveIntensity,
-        0.6 + (focusMix ? 0.28 : activeMix ? 0.14 : hovered ? 0.08 : 0.03),
+        focusMix ? 0.04 : 0.6 + (activeMix ? 0.14 : hovered ? 0.08 : 0.03),
         0.1,
       );
       imageMaterial.opacity = THREE.MathUtils.lerp(
@@ -148,7 +148,7 @@ export function ImagePanel({
     if (imageBoostMaterial) {
       imageBoostMaterial.opacity = THREE.MathUtils.lerp(
         imageBoostMaterial.opacity,
-        focusMix ? 0.22 : activeMix ? 0.08 : hovered ? 0.04 : 0,
+        focusMix ? 0 : activeMix ? 0.08 : hovered ? 0.04 : 0,
         0.08,
       );
     }
@@ -157,7 +157,7 @@ export function ImagePanel({
     if (glassMaterial) {
       glassMaterial.opacity = THREE.MathUtils.lerp(
         glassMaterial.opacity,
-        focusMix ? 0.06 : hovered ? 0.18 : dimmed ? 0.04 : 0.1,
+        focusMix ? 0 : hovered ? 0.18 : dimmed ? 0.04 : 0.1,
         0.08,
       );
     }

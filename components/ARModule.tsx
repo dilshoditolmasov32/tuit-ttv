@@ -159,22 +159,10 @@ const mobileUserAgentPattern =
 
 const deviceModels = [
   {
-    id: "mixer",
-    label: "Mixer",
-    src: `${import.meta.env.BASE_URL}images/mixer.glb`,
-    alt: "Mixer modeli",
-  },
-  {
-    id: "studio",
-    label: "Studio Microphone",
-    src: `${import.meta.env.BASE_URL}images/studio_microphone.glb`,
-    alt: "Mikrofon modeli",
-  },
-  {
-    id: "softbox",
-    label: "Softbox",
-    src: `${import.meta.env.BASE_URL}images/studio_softbox_light.glb`,
-    alt: "Softbox yoritgich modeli",
+    id: "printer",
+    label: "3D Printer",
+    src: `${import.meta.env.BASE_URL}images/3d-printer.glb`,
+    alt: "3D printer modeli",
   },
   {
     id: "spotlight",
@@ -200,7 +188,7 @@ export default function ARModule({ lang, onBack }: ARModuleProps) {
   const [isMobile, setIsMobile] = useState(true);
   const [mobileMode, setMobileMode] = useState<MobileARMode>("device");
   const [selectedModelId, setSelectedModelId] =
-    useState<(typeof deviceModels)[number]["id"]>("mixer");
+    useState<(typeof deviceModels)[number]["id"]>("printer");
   const [status, setStatus] = useState<ARStatus>("idle");
   const text = uiText[lang];
   const selectedModel =
