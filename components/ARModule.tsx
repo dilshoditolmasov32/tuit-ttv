@@ -182,6 +182,18 @@ const deviceModels = [
     src: `${import.meta.env.BASE_URL}images/on_air_sign.glb`,
     alt: "Efir ko'rsatkichi belgisi",
   },
+  {
+    id: "object_2",
+    label: "3D Object 2",
+    src: `${import.meta.env.BASE_URL}images/3d-object-2.glb`,
+    alt: "3D object 2 modeli",
+  },
+  {
+    id: "object_3",
+    label: "3D Object 3",
+    src: `${import.meta.env.BASE_URL}images/3d-object-3.glb`,
+    alt: "3D object 3 modeli",
+  },
 ] as const;
 
 export default function ARModule({ lang, onBack }: ARModuleProps) {

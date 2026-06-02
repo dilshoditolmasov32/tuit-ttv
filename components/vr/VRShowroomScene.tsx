@@ -272,8 +272,6 @@ function ShowroomModels() {
   const studio = useGLTF(MODEL_PATHS.studio);
   const mic = useGLTF(MODEL_PATHS.mic);
   const speakers = useGLTF(MODEL_PATHS.speakers);
-  const softbox = useGLTF(MODEL_PATHS.softbox);
-  const spotlight = useGLTF(MODEL_PATHS.spotlight);
 
   return (
     <group>
@@ -285,22 +283,10 @@ function ShowroomModels() {
           rotation={[0, -0.35, 0]}
           scale={[0.34, 0.34, 0.34]}
         />
-        <primitive
-          object={softbox.scene}
-          position={[0.82, 0.26, -0.14]}
-          rotation={[0, -0.85, 0]}
-          scale={[0.42, 0.42, 0.42]}
-        />
       </group>
 
       <group position={[0, 0.2, -3.78]}>
         <ModelPodium accent="#8b5cf6" position={[0, 0, 0]} scale={[1.75, 0.2, 1.2]} />
-        <primitive
-          object={spotlight.scene}
-          position={[0.18, 0.22, -0.06]}
-          rotation={[0, -0.2, 0]}
-          scale={[0.42, 0.42, 0.42]}
-        />
       </group>
 
       <group position={[4.7, 0.2, -2.2]} rotation={[0, -0.42, 0]}>
